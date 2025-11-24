@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -17,6 +19,8 @@ const formSchema = z.object({
     title: z.string().min(2, { message: 'Le titre doit contenir au moins 2 caractères.' }),
     price: z.string().min(1, { message: 'Le prix est requis.' }),
     description: z.string().optional(),
+    // image is optional, we accept any File object
+    image: z.any().optional(),
 });
 
 export default function AddVehiclePage() {
@@ -24,11 +28,12 @@ export default function AddVehiclePage() {
     const { toast } = useToast();
     const auth = useAuth();
     const firestore = useFirestore();
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(formSchema),
-        defaultValues: { title: '', price: '', description: '' },
+        defaultValues: { title: '', price: '', description: '', image: null },
     });
 
     const onSubmit = async (values) => {
@@ -41,6 +46,8 @@ export default function AddVehiclePage() {
                 title: values.title,
                 price: values.price,
                 description: values.description ?? '',
+                // TODO: upload image to Firebase Storage and store URL in `imageUrl`
+                // For now we ignore the image.
                 createdAt: serverTimestamp(),
             }, { merge: true });
             toast({ title: 'Annonce créée', description: 'Votre véhicule a été publié.' });
@@ -96,6 +103,34 @@ export default function AddVehiclePage() {
                                             <Input placeholder="Détails du véhicule..." {...field} />
                                         </FormControl>
                                         <FormMessage />
+                                    </FormItem>
+                                )} />
+                                {/* Image upload field */}
+                                <FormField control={form.control} name="image" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Photo (optionnel)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] || null;
+                                                    setSelectedImage(file);
+                                                    // Update react-hook-form value
+                                                    field.onChange(file);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        {selectedImage && (
+                                            <div className="mt-2">
+                                                <img
+                                                    src={URL.createObjectURL(selectedImage)}
+                                                    alt="Aperçu"
+                                                    className="h-32 w-auto rounded"
+                                                />
+                                            </div>
+                                        )}
                                     </FormItem>
                                 )} />
                                 <Button type="submit" className="w-full" disabled={isLoading}>

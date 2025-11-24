@@ -1,27 +1,20 @@
 
 /**
- * This ruleset enforces a strict user-ownership model for the Zua-Car application
- * for user data, and a public-read model for product catalogs.
- *
- * --- Data Structure ---
- * - /users/{userId}: Private user profile data.
- * - /parts/{partId}: Publicly readable spare parts data.
- *
- * --- Key Security Decisions ---
- * - User Enumeration is Disabled: Listing the `/users` collection is disallowed.
- * - Strict Ownership for Users: All operations on a user's document are
- *   restricted to the authenticated user whose UID matches the document ID.
- * - Public Read for Parts: Anyone can read the list of parts or individual parts.
- * - Restricted Writes for Parts: Writing to the `/parts` collection is disabled
- *   from the client-side to protect catalog integrity. (Admin only - not implemented here).
- * - Default Deny: Any path not explicitly matched is inaccessible.
+ * Règles de sécurité Firestore pour Zua-Car
+ * Permet aux utilisateurs authentifiés de publier leurs propres annonces
+ * 
+ * Collections:
+ * - /users/{userId}: Profils utilisateurs
+ * - /vehicles/{vehicleId}: Véhicules à vendre
+ * - /parts/{partId}: Pièces détachées
+ * - /rentals/{rentalId}: Véhicules en location
  */
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
+    // --- Fonctions Helper ---
     function isSignedIn() {
       return request.auth != null;
     }
@@ -30,21 +23,68 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- User Collection Rules ---
+    function isListingOwner(resource) {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // --- Collection Utilisateurs ---
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update, delete: if isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId));
-      allow list: if false;
+      allow update, delete: if isOwner(userId);
+      allow list: if false; // Empêche l'énumération des utilisateurs
     }
 
-    // --- Parts Collection Rules ---
-    match /parts/{partId} {
-      // Public Read Access
+    // --- Collection Véhicules à Vendre ---
+    match /vehicles/{vehicleId} {
+      // Lecture publique
       allow get, list: if true;
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'title', 'price', 'createdAt']);
+      
+      // Modification/Suppression par le propriétaire uniquement
+      allow update, delete: if isListingOwner(resource);
+    }
 
-      // Disable all client-side writes
-      allow create, update, delete: if false;
+    // --- Collection Pièces Détachées ---
+    match /parts/{partId} {
+      // Lecture publique
+      allow get, list: if true;
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'title', 'price', 'createdAt']);
+      
+      // Modification/Suppression par le propriétaire uniquement
+      allow update, delete: if isListingOwner(resource);
+    }
+
+    // --- Collection Locations ---
+    match /rentals/{rentalId} {
+      // Lecture publique
+      allow get, list: if true;
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'title', 'pricePerDay', 'createdAt']);
+      
+      // Modification/Suppression par le propriétaire uniquement
+      allow update, delete: if isListingOwner(resource);
+    }
+
+    // --- Collection Favoris (optionnel) ---
+    match /favorites/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
     }
   }
 }

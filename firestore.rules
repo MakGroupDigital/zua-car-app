@@ -1,0 +1,50 @@
+
+/**
+ * This ruleset enforces a strict user-ownership model for the Zua-Car application
+ * for user data, and a public-read model for product catalogs.
+ *
+ * --- Data Structure ---
+ * - /users/{userId}: Private user profile data.
+ * - /parts/{partId}: Publicly readable spare parts data.
+ *
+ * --- Key Security Decisions ---
+ * - User Enumeration is Disabled: Listing the `/users` collection is disallowed.
+ * - Strict Ownership for Users: All operations on a user's document are
+ *   restricted to the authenticated user whose UID matches the document ID.
+ * - Public Read for Parts: Anyone can read the list of parts or individual parts.
+ * - Restricted Writes for Parts: Writing to the `/parts` collection is disabled
+ *   from the client-side to protect catalog integrity. (Admin only - not implemented here).
+ * - Default Deny: Any path not explicitly matched is inaccessible.
+ */
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- User Collection Rules ---
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update, delete: if isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId));
+      allow list: if false;
+    }
+
+    // --- Parts Collection Rules ---
+    match /parts/{partId} {
+      // Public Read Access
+      allow get, list: if true;
+
+      // Disable all client-side writes
+      allow create, update, delete: if false;
+    }
+  }
+}

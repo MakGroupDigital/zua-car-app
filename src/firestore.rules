@@ -1,0 +1,101 @@
+/**
+ * This ruleset enforces a strict user-ownership model for the Zua-Car application.
+ * The core philosophy is that users have complete control over their own data,
+ * and no user can access, view, or modify another user's data.
+ *
+ * --- Data Structure ---
+ * All user data is organized under a single top-level collection:
+ * - /users/{userId}: Stores the profile document for a specific user.
+ *
+ * --- Key Security Decisions ---
+ * - User Enumeration is Disabled: Listing documents in the top-level `/users`
+ *   collection is explicitly disallowed to protect user privacy and prevent data scraping.
+ * - Strict Ownership: All operations (read, write, delete) on a user's document
+ *   are restricted to the authenticated user whose UID matches the document ID.
+ * - Default Deny: Any path not explicitly matched is inaccessible.
+ *
+ * --- Denormalization for Authorization ---
+ * This model is inherently simple and performant. Authorization is based on the
+ * document path (`/users/{userId}`), which directly corresponds to the user's
+ * authentication UID. This avoids the need for any slow or costly `get()` calls
+ * to other documents to verify permissions.
+ *
+ * --- Structural Segregation ---
+ * Not applicable in this model, as all data follows the same private,
+ * user-owned security pattern. There are no public or shared collections.
+ */
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the requesting user's UID matches the document's userId.
+     * This is the fundamental check for user-owned documents.
+     * @param userId The user ID from the document path.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Ensures a write request is from the owner of an *existing* document.
+     * CRITICAL: This prevents modifying or deleting documents that do not exist,
+     * which is a security best practice for all update and delete operations.
+     * @param userId The user ID from the document path.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId));
+    }
+    
+    /**
+     * Validates that the user document's internal 'id' field
+     * is consistent with the document's ID in the path during a create operation.
+     */
+    function hasConsistentIdOnCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * Ensures the document's internal 'id' field is immutable during an update.
+     */
+    function hasImmutableId() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Manages user profile documents. Each user has exclusive read and
+     *              write access to their own document.
+     * @path /users/{userId}
+     * @allow A signed-in user (UID: 'user_abc') can `create` their own profile at `/users/user_abc`.
+     * @deny A signed-in user (UID: 'user_abc') cannot `get` another user's profile at `/users/user_xyz`.
+     * @principle Restricts access to a user's own data tree and validates relational integrity.
+     */
+    match /users/{userId} {
+      // READ: A user can only get their own document. Listing all users is disabled for privacy.
+      allow get: if isOwner(userId);
+      allow list: if false;
+
+      // CREATE: A user can create their own document if the ID in the data matches their UID.
+      allow create: if isOwner(userId) && hasConsistentIdOnCreate(userId);
+
+      // UPDATE: A user can update their own document if it exists and the ID remains unchanged.
+      allow update: if isExistingOwner(userId) && hasImmutableId();
+      
+      // DELETE: A user can delete their own document if it already exists.
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}

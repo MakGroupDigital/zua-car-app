@@ -1,0 +1,124 @@
+{
+  "placeholderImages": [
+    {
+      "id": "app-logo",
+      "description": "Zua-Car application logo",
+      "imageUrl": "https://res.cloudinary.com/dy73hzkpm/image/upload/v1763653988/unnamed_1_oj7bme.jpg",
+      "imageHint": "company logo"
+    },
+    {
+      "id": "hero-background",
+      "description": "A yellow sports car at an angle, similar to the splash screen image.",
+      "imageUrl": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5ZWxsb3clMjBzcG9ydHMlMjBjYXJ8ZW58MHx8fHwxNzYzNzU0MzU3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow car"
+    },
+    {
+      "id": "service-maintenance",
+      "description": "A mechanic performing car maintenance.",
+      "imageUrl": "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYXIlMjBtYWludGVuYW5jZXxlbnwwfHx8fDE3NjM2NTI4NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car maintenance"
+    },
+    {
+      "id": "service-repair",
+      "description": "A car being repaired in a garage.",
+      "imageUrl": "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjYXIlMjByZXBhaXJ8ZW58MHx8fHwxNzYzNjM5MjczfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car repair"
+    },
+    {
+      "id": "service-sales",
+      "description": "A modern car dealership showroom.",
+      "imageUrl": "https://images.unsplash.com/photo-1621808752171-531c30903889?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYXIlMjBkZWFsZXJzaGlwfGVufDB8fHx8MTc2MzY1Mjg3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car dealership"
+    },
+    {
+      "id": "avatar-1",
+      "description": "Avatar for a customer testimonial.",
+      "imageUrl": "https://images.unsplash.com/photo-1522556189639-b150ed9c4330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjM1OTUxOTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Avatar for a customer testimonial.",
+      "imageUrl": "https://images.unsplash.com/photo-1610655507808-a59293f4e332?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MzUzOTkzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Avatar for a customer testimonial.",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjM1ODUwMzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "logo-cadillac",
+      "imageUrl": "https://images.unsplash.com/photo-1638279101286-a973f88f4f54?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxDYWRpbGxhYyUyMGxvZ298ZW58MHx8fHwxNzYzNjUzODkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Cadillac logo",
+      "imageHint": "Cadillac logo"
+    },
+    {
+      "id": "logo-tesla",
+      "imageUrl": "https://images.unsplash.com/photo-1700934509528-d7e0ddf28b6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxUZXNsYSUyMGxvZ298ZW58MHx8fHwxNzYzNjUzODg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Tesla logo",
+      "imageHint": "Tesla logo"
+    },
+    {
+      "id": "logo-bmw",
+      "imageUrl": "https://images.unsplash.com/photo-1720365011092-32879c966170?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Qk1XJTIwbG9nb3xlbnwwfHx8fDE3NjM2NTM4ODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "BMW logo",
+      "imageHint": "BMW logo"
+    },
+    {
+      "id": "logo-mazda",
+      "imageUrl": "https://images.unsplash.com/photo-1687048990007-4ab2529a0777?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8TWF6ZGElMjBsb2dvfGVufDB8fHx8MTc2MzY1Mzg5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Mazda logo",
+      "imageHint": "Mazda logo"
+    },
+    {
+      "id": "car-tesla-model-3",
+      "imageUrl": "https://images.unsplash.com/photo-1585011664466-b7bbe92f34ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxUZXNsYSUyME1vZGVsJTIwM3xlbnwwfHx8fDE3NjM2NTM4OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Tesla Model 3",
+      "imageHint": "Tesla Model 3"
+    },
+    {
+      "id": "car-tesla-model-x",
+      "imageUrl": "https://images.unsplash.com/flagged/photo-1556569950-a8c536b24443?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8VGVzbGElMjBNb2RlbCUyMFh8ZW58MHx8fHwxNzYzNjUzODkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Tesla Model X",
+      "imageHint": "Tesla Model X"
+    },
+    {
+      "id": "car-bmw-series-3",
+      "imageUrl": "https://images.unsplash.com/photo-1616455579100-2ceaa4eb2d37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxCTVclMjBjYXJ8ZW58MHx8fHwxNzYzNjUzODkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "BMW Series 3",
+      "imageHint": "BMW car"
+    },
+    {
+      "id": "car-cadillac-escalade",
+      "imageUrl": "https://images.unsplash.com/photo-1684208551873-64416367be50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxDYWRpbGxhYyUyMEVzY2FsYWRlfGVufDB8fHx8MTc2MzY1Mzg5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Cadillac Escalade",
+      "imageHint": "Cadillac Escalade"
+    },
+    {
+      "id": "part-oil-filter",
+      "imageUrl": "https://images.unsplash.com/photo-1517026575980-3e1e2dedeab4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXIlMjBwYXJ0fGVufDB8fHx8MTc2Mzk3ODcwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Oil filter for a car",
+      "imageHint": "car part"
+    },
+    {
+      "id": "part-brake-pads",
+      "imageUrl": "https://images.unsplash.com/photo-1522598140461-ec9911e01c53?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjYXIlMjBwYXJ0fGVufDB8fHx8MTc2Mzk3ODcwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Set of brake pads",
+      "imageHint": "car part"
+    },
+    {
+      "id": "part-shock-absorber",
+      "imageUrl": "https://images.unsplash.com/photo-1606577924006-27d39b132ae2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYXIlMjBwYXJ0fGVufDB8fHx8MTc2Mzk3ODcwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Car shock absorber",
+      "imageHint": "car part"
+    },
+    {
+      "id": "part-led-bulb",
+      "imageUrl": "https://images.unsplash.com/photo-1500741236341-1b7a0f91f1f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXIlMjBsaWdodHxlbnwwfHx8fDE3NjM5Nzg3MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "LED headlight bulb",
+      "imageHint": "car light"
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Zua-Car application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The user's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The user's last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date the user registered.",
+          "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "The date of the user's last login.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "registrationDate"
+      ]
+    },
+    "Part": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Part",
+      "type": "object",
+      "description": "Represents a vehicle spare part available for sale.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Part entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the spare part."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the part."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the part."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category the part belongs to (e.g., Moteur, Freinage)."
+        },
+        "compatibility": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of vehicle models or types this part is compatible with."
+        },
+        "stock": {
+          "type": "integer",
+          "description": "The number of items in stock."
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the part's image."
+        }
+      },
+      "required": ["id", "name", "price", "category", "stock"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous",
+      "phone"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile data. Path-based ownership ensures only the user (or an admin - not modeled here) can access their own data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/parts/{partId}",
+        "definition": {
+          "entityName": "Part",
+          "schema": {
+            "$ref": "#/backend/entities/Part"
+          },
+          "description": "Stores spare part information. This collection is public for reading but restricted for writing.",
+          "params": [
+            {
+              "name": "partId",
+              "description": "The unique identifier of the spare part."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support user management and a public catalog of spare parts. User data is private, while parts data is publicly readable to all users of the application."
+  }
+}

@@ -18,12 +18,15 @@ import {
     onSnapshot, 
     addDoc, 
     doc, 
-    getDoc, 
+    getDoc,
+    getDocs,
     updateDoc,
     serverTimestamp,
-    Timestamp
+    Timestamp,
+    limit
 } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { createMessageNotification } from '@/lib/notifications/create-notification';
 
 interface Participant {
     id: string;
@@ -39,6 +42,10 @@ interface Conversation {
     lastMessageTime: Timestamp | null;
     vehicleId?: string;
     vehicleTitle?: string;
+    partId?: string;
+    partTitle?: string;
+    rentalId?: string;
+    rentalTitle?: string;
     unreadCount?: { [id: string]: number };
     createdAt: Timestamp;
 }
@@ -69,6 +76,8 @@ export default function MessagesPage() {
 
     const sellerIdParam = searchParams.get('sellerId');
     const vehicleIdParam = searchParams.get('vehicleId');
+    const partIdParam = searchParams.get('partId');
+    const rentalIdParam = searchParams.get('rentalId');
     const messageParam = searchParams.get('message');
 
     useEffect(() => {
@@ -88,9 +97,12 @@ export default function MessagesPage() {
                 
                 let existingConvoId: string | null = null;
                 for (const convo of conversations) {
+                    const matchesVehicle = vehicleIdParam ? convo.vehicleId === vehicleIdParam : true;
+                    const matchesPart = partIdParam ? convo.partId === partIdParam : true;
+                    const matchesRental = rentalIdParam ? convo.rentalId === rentalIdParam : true;
                     if (convo.participantIds.includes(sellerIdParam) && 
                         convo.participantIds.includes(user.uid) &&
-                        (!vehicleIdParam || convo.vehicleId === vehicleIdParam)) {
+                        matchesVehicle && matchesPart && matchesRental) {
                         existingConvoId = convo.id;
                         break;
                     }
@@ -130,13 +142,35 @@ export default function MessagesPage() {
                         userPhoto = userData.photoURL || '';
                     }
 
+                    // Get vehicle, part or rental title
                     let vehicleTitle = '';
+                    let partTitle = '';
+                    let rentalTitle = '';
+                    
                     if (vehicleIdParam) {
                         const vehicleDocRef = doc(firestore, 'vehicles', vehicleIdParam);
                         const vehicleSnap = await getDoc(vehicleDocRef);
                         if (vehicleSnap.exists()) {
                             const vehicleData = vehicleSnap.data();
                             vehicleTitle = vehicleData.title || `${vehicleData.make} ${vehicleData.model}`;
+                        }
+                    }
+                    
+                    if (partIdParam) {
+                        const partDocRef = doc(firestore, 'parts', partIdParam);
+                        const partSnap = await getDoc(partDocRef);
+                        if (partSnap.exists()) {
+                            const partData = partSnap.data();
+                            partTitle = partData.title || partData.name || 'Pièce';
+                        }
+                    }
+                    
+                    if (rentalIdParam) {
+                        const rentalDocRef = doc(firestore, 'rentals', rentalIdParam);
+                        const rentalSnap = await getDoc(rentalDocRef);
+                        if (rentalSnap.exists()) {
+                            const rentalData = rentalSnap.data();
+                            rentalTitle = rentalData.title || `${rentalData.make} ${rentalData.model}` || 'Véhicule de location';
                         }
                     }
 
@@ -150,6 +184,10 @@ export default function MessagesPage() {
                         lastMessageTime: null,
                         vehicleId: vehicleIdParam || null,
                         vehicleTitle: vehicleTitle || null,
+                        partId: partIdParam || null,
+                        partTitle: partTitle || null,
+                        rentalId: rentalIdParam || null,
+                        rentalTitle: rentalTitle || null,
                         unreadCount: { [user.uid]: 0, [sellerIdParam]: 0 },
                         createdAt: serverTimestamp(),
                     });
@@ -204,6 +242,75 @@ export default function MessagesPage() {
 
         return () => unsubscribe();
     }, [user, firestore]);
+
+    // Global listener for new messages to create notifications
+    // This listens to conversation updates (lastMessageTime) to detect new messages
+    useEffect(() => {
+        if (!user || !firestore) return;
+
+        const conversationsRef = collection(firestore, 'conversations');
+        const q = query(
+            conversationsRef,
+            where('participantIds', 'array-contains', user.uid),
+            orderBy('lastMessageTime', 'desc')
+        );
+
+        let previousLastMessages: { [key: string]: Timestamp | null } = {};
+
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            snapshot.forEach(async (convoDoc) => {
+                const convoData = convoDoc.data() as Conversation;
+                const convoId = convoDoc.id;
+                
+                // Skip if this is the currently selected conversation
+                if (selectedConversationId === convoId) {
+                    previousLastMessages[convoId] = convoData.lastMessageTime;
+                    return;
+                }
+
+                // Check if lastMessageTime changed and message is from someone else
+                const previousTime = previousLastMessages[convoId];
+                const currentTime = convoData.lastMessageTime;
+                
+                if (currentTime && 
+                    (!previousTime || currentTime.toMillis() > previousTime.toMillis()) &&
+                    convoData.lastMessage) {
+                    
+                    // Get the latest message to check sender
+                    const messagesRef = collection(firestore, 'conversations', convoId, 'messages');
+                    const messagesQuery = query(messagesRef, orderBy('createdAt', 'desc'), limit(1));
+                    
+                    try {
+                        const messagesSnapshot = await getDocs(messagesQuery);
+                        messagesSnapshot.forEach(async (msgDoc) => {
+                            const msgData = msgDoc.data() as Message;
+                            
+                            // Only create notification if message is from someone else
+                            if (msgData.senderId !== user.uid) {
+                                const otherParticipant = convoData.participants.find(p => p.id !== user.uid);
+                                if (otherParticipant) {
+                                    await createMessageNotification(
+                                        firestore,
+                                        user.uid,
+                                        otherParticipant.name,
+                                        msgData.text,
+                                        convoId,
+                                        otherParticipant.photoURL
+                                    );
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error fetching message for notification:', error);
+                    }
+                }
+                
+                previousLastMessages[convoId] = currentTime;
+            });
+        });
+
+        return () => unsubscribe();
+    }, [user, firestore, selectedConversationId]);
 
     useEffect(() => {
         if (!selectedConversationId || !firestore) {
@@ -311,6 +418,7 @@ export default function MessagesPage() {
 
             const convoRef = doc(firestore, 'conversations', selectedConversationId);
             const otherParticipantId = selectedConversation?.participantIds.find(id => id !== user.uid);
+            const otherParticipant = selectedConversation?.participants.find(p => p.id !== user.uid);
             
             await updateDoc(convoRef, {
                 lastMessage: messageText,
@@ -319,6 +427,18 @@ export default function MessagesPage() {
                     [`unreadCount.${otherParticipantId}`]: (selectedConversation?.unreadCount?.[otherParticipantId] || 0) + 1,
                 }),
             });
+
+            // Create notification for recipient
+            if (otherParticipantId && otherParticipant) {
+                await createMessageNotification(
+                    firestore,
+                    otherParticipantId,
+                    senderName,
+                    messageText,
+                    selectedConversationId,
+                    user.photoURL || undefined
+                );
+            }
         } catch (err) {
             console.error('Error sending message:', err);
             toast({
@@ -337,6 +457,8 @@ export default function MessagesPage() {
         const otherParticipant = getOtherParticipant(convo);
         return otherParticipant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                convo.vehicleTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               convo.partTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               convo.rentalTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                convo.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
@@ -394,9 +516,9 @@ export default function MessagesPage() {
                                 <h1 className="text-lg font-bold truncate">
                                     {getOtherParticipant(selectedConversation).name}
                                 </h1>
-                                {selectedConversation.vehicleTitle && (
+                                {(selectedConversation.vehicleTitle || selectedConversation.partTitle || selectedConversation.rentalTitle) && (
                                     <p className="text-xs text-muted-foreground truncate">
-                                        {selectedConversation.vehicleTitle}
+                                        {selectedConversation.vehicleTitle || selectedConversation.partTitle || selectedConversation.rentalTitle}
                                     </p>
                                 )}
                             </div>
@@ -469,9 +591,9 @@ export default function MessagesPage() {
                                                         {formatTime(convo.lastMessageTime)}
                                                     </p>
                                                 </div>
-                                                {convo.vehicleTitle && (
+                                                {(convo.vehicleTitle || convo.partTitle || convo.rentalTitle) && (
                                                     <p className="text-xs text-primary truncate">
-                                                        {convo.vehicleTitle}
+                                                        {convo.vehicleTitle || convo.partTitle || convo.rentalTitle}
                                                     </p>
                                                 )}
                                                 <div className="flex justify-between items-center">

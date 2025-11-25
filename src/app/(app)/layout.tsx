@@ -8,7 +8,7 @@ export default function AppLayout({
 }) {
   return (
     <div className="h-screen flex flex-col">
-      <main className="flex-1 pb-[76px] overflow-y-auto">{children}</main>
+      <main className="flex-1 pb-[100px] overflow-y-auto">{children}</main>
       <BottomNav />
     </div>
   );

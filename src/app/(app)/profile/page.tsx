@@ -1,18 +1,16 @@
-
-
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser, useFirestore, useDoc, useAuth, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { useUser, useFirestore, useDoc, useAuth, useMemoFirebase, useStorage } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { signOut, updateProfile } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { ChevronRight, User, Settings, HelpCircle, LogOut, ArrowLeft, Shield, FileText, Loader2 } from 'lucide-react';
+import { ChevronRight, User, Settings, HelpCircle, LogOut, ArrowLeft, Shield, FileText, Loader2, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
@@ -29,11 +27,13 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const storage = useStorage();
   const auth = useAuth();
   const { toast } = useToast();
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'avatar-1');
   const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -41,6 +41,85 @@ export default function ProfilePage() {
   }, [firestore, user]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !storage || !firestore) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: 'destructive',
+        title: 'Fichier invalide',
+        description: 'Veuillez sélectionner une image (JPG, PNG, etc.)',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: 'destructive',
+        title: 'Fichier trop volumineux',
+        description: 'La taille maximale est de 5 Mo',
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+
+    try {
+      // Create unique filename
+      const timestamp = Date.now();
+      const fileName = `users/${user.uid}/profile_${timestamp}_${file.name}`;
+      const storageRef = ref(storage, fileName);
+
+      // Upload file
+      toast({
+        title: 'Upload en cours...',
+        description: 'Votre photo est en cours de téléchargement',
+      });
+
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      // Update Firestore user document
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userDocRef, {
+        photoURL: downloadURL,
+      });
+
+      // Update Firebase Auth profile
+      await updateProfile(user, {
+        photoURL: downloadURL,
+      });
+
+      toast({
+        title: 'Photo mise à jour !',
+        description: 'Votre photo de profil a été modifiée avec succès',
+      });
+
+      // Force page refresh to show new photo
+      router.refresh();
+    } catch (error: any) {
+      console.error('Error uploading photo:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: error.message || 'Impossible de mettre à jour la photo',
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -89,6 +168,9 @@ export default function ProfilePage() {
   const displayName = userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'Utilisateur';
   const displayEmail = userProfile?.email || user?.email;
   const displayPhone = userProfile?.phoneNumber || user?.phoneNumber;
+  
+  // Get photo URL from Firestore profile, Firebase Auth, or fallback
+  const photoURL = userProfile?.photoURL || user?.photoURL;
 
   return (
     <div className="bg-muted min-h-screen">
@@ -102,10 +184,52 @@ export default function ProfilePage() {
       <main className="p-4 space-y-6">
         <Card className="overflow-hidden shadow-lg">
           <CardContent className="p-6 flex flex-col items-center text-center">
-            <Avatar className="h-24 w-24 mb-4 border-4 border-primary/50">
-              {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint} />}
-              <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
-            </Avatar>
+            {/* Hidden file input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handlePhotoChange}
+              accept="image/*"
+              className="hidden"
+            />
+            
+            {/* Clickable Avatar with camera overlay */}
+            <div 
+              className="relative cursor-pointer group mb-4"
+              onClick={handlePhotoClick}
+            >
+              <Avatar className={cn(
+                "h-24 w-24 border-4 border-primary/50 transition-opacity",
+                isUploadingPhoto && "opacity-50"
+              )}>
+                {photoURL ? (
+                  <AvatarImage src={photoURL} alt="Photo de profil" />
+                ) : null}
+                <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
+              </Avatar>
+              
+              {/* Camera overlay */}
+              <div className={cn(
+                "absolute inset-0 flex items-center justify-center rounded-full bg-black/40 transition-opacity",
+                isUploadingPhoto ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}>
+                {isUploadingPhoto ? (
+                  <Loader2 className="h-8 w-8 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-8 w-8 text-white" />
+                )}
+              </div>
+              
+              {/* Camera badge */}
+              <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1.5 shadow-lg border-2 border-background">
+                <Camera className="h-4 w-4 text-primary-foreground" />
+              </div>
+            </div>
+            
+            <p className="text-xs text-muted-foreground mb-2">
+              Cliquez sur la photo pour la modifier
+            </p>
+            
             <h2 className="text-2xl font-bold">{displayName}</h2>
             <div className="text-muted-foreground mt-2 space-y-1">
               {displayEmail && <p>{displayEmail}</p>}

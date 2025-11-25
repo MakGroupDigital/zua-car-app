@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Heart, Share2, Gauge, GitCommitHorizontal, Calendar, Palette, MessageSquare, BadgeCheck, Check, Copy, Link2, X } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Gauge, GitCommitHorizontal, Calendar, Palette, MessageSquare, BadgeCheck, Check, Copy, Link2, X, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -21,13 +21,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Rating } from '@/components/ui/rating';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useParams, useRouter } from 'next/navigation';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useFirestore, useMemoFirebase, useUser } from '@/firebase/provider';
-import { doc, getDoc, setDoc, deleteDoc, arrayUnion, arrayRemove, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, arrayUnion, arrayRemove, updateDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 
 interface SellerInfo {
   name: string;
@@ -50,6 +51,10 @@ export default function VehicleDetailsPage() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(true);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [ratingCount, setRatingCount] = useState<number>(0);
+  const [isRatingLoading, setIsRatingLoading] = useState(true);
 
   const vehicleDoc = useMemoFirebase(() =>
         firestore && vehicleId ? doc(firestore, 'vehicles', vehicleId) : null,
@@ -131,6 +136,105 @@ export default function VehicleDetailsPage() {
       fetchSeller();
     }
   }, [vehicle, firestore]);
+
+  // Fetch ratings
+  useEffect(() => {
+    const fetchRatings = async () => {
+      if (!vehicleId || !firestore) {
+        setIsRatingLoading(false);
+        return;
+      }
+
+      try {
+        const ratingsRef = collection(firestore, 'ratings');
+        const q = query(ratingsRef, where('vehicleId', '==', vehicleId));
+        const querySnapshot = await getDocs(q);
+        
+        let totalRating = 0;
+        let count = 0;
+        let userRatingValue: number | null = null;
+
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          totalRating += data.rating;
+          count++;
+          
+          if (user && data.userId === user.uid) {
+            userRatingValue = data.rating;
+          }
+        });
+
+        setUserRating(userRatingValue);
+        setRatingCount(count);
+        setAverageRating(count > 0 ? totalRating / count : 0);
+      } catch (err) {
+        console.error('Error fetching ratings:', err);
+      } finally {
+        setIsRatingLoading(false);
+      }
+    };
+
+    fetchRatings();
+  }, [vehicleId, firestore, user]);
+
+  // Handle rating submission
+  const handleRate = async (rating: number) => {
+    if (!user || !vehicleId || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Connexion requise',
+        description: 'Vous devez être connecté pour noter cette offre',
+      });
+      return;
+    }
+
+    try {
+      const ratingId = `${vehicleId}_${user.uid}`;
+      const ratingRef = doc(firestore, 'ratings', ratingId);
+      
+      // Check if user already rated
+      const existingRating = await getDoc(ratingRef);
+      const wasUpdate = existingRating.exists();
+      
+      await setDoc(ratingRef, {
+        vehicleId,
+        userId: user.uid,
+        rating,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+
+      setUserRating(rating);
+      
+      // Recalculate average rating
+      const ratingsRef = collection(firestore, 'ratings');
+      const q = query(ratingsRef, where('vehicleId', '==', vehicleId));
+      const querySnapshot = await getDocs(q);
+      
+      let totalRating = 0;
+      let count = 0;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        totalRating += data.rating;
+        count++;
+      });
+
+      setRatingCount(count);
+      setAverageRating(count > 0 ? totalRating / count : 0);
+
+      toast({
+        title: wasUpdate ? 'Note mise à jour' : 'Note enregistrée',
+        description: `Vous avez donné ${rating} étoile${rating > 1 ? 's' : ''} à cette offre`,
+      });
+    } catch (err) {
+      console.error('Error submitting rating:', err);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Impossible d\'enregistrer votre note',
+      });
+    }
+  };
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Chargement…</div>;
@@ -394,6 +498,21 @@ export default function VehicleDetailsPage() {
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold">{vehicle.model}</CardTitle>
                     <p className="text-2xl font-extrabold text-primary">${vehicle.price}</p>
+                    {!isRatingLoading && (
+                      <div className="flex items-center gap-4 mt-2">
+                        <Rating
+                          value={averageRating}
+                          readonly={true}
+                          showValue={true}
+                          size="md"
+                        />
+                        {ratingCount > 0 && (
+                          <span className="text-sm text-muted-foreground">
+                            ({ratingCount} avis{ratingCount > 1 ? 's' : ''})
+                          </span>
+                        )}
+                      </div>
+                    )}
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground"><Gauge className="h-5 w-5 text-primary"/> <span>{vehicle.mileage}</span></div>
@@ -402,6 +521,47 @@ export default function VehicleDetailsPage() {
                     <div className="flex items-center gap-2 text-muted-foreground"><Palette className="h-5 w-5 text-primary"/> <span>{vehicle.color}</span></div>
                 </CardContent>
             </Card>
+
+            {/* Rating Section */}
+            {user && (
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>Noter cette offre</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {userRating ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Votre note: {userRating} étoile{userRating > 1 ? 's' : ''}
+                        </p>
+                        <Rating
+                          value={userRating}
+                          onRate={handleRate}
+                          size="lg"
+                          showValue={false}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Cliquez sur les étoiles pour modifier votre note
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Donnez votre avis sur cette offre
+                        </p>
+                        <Rating
+                          value={0}
+                          onRate={handleRate}
+                          size="lg"
+                          showValue={false}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
              <Card className="shadow-lg">
                 <CardHeader>

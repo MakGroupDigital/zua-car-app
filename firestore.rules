@@ -88,6 +88,30 @@ service cloud.firestore {
       allow create, update, delete: if isOwner(userId);
     }
 
+    // --- Collection Demandes d'Assurance ---
+    match /insuranceRequests/{requestId} {
+      // Création autorisée pour tous (même non connectés)
+      allow create: if true;
+      
+      // Lecture uniquement par le propriétaire de la demande
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Pas de modification ni suppression
+      allow update, delete: if false;
+    }
+
+    // --- Collection Demandes d'Auto-école ---
+    match /drivingSchoolRequests/{requestId} {
+      // Création autorisée pour tous (même non connectés)
+      allow create: if true;
+      
+      // Lecture uniquement par le propriétaire de la demande
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Pas de modification ni suppression
+      allow update, delete: if false;
+    }
+
     // --- Collection Conversations ---
     match /conversations/{conversationId} {
       // Lecture autorisée si l'utilisateur est participant
@@ -119,6 +143,43 @@ service cloud.firestore {
         // Pas de modification ni suppression des messages
         allow update, delete: if false;
       }
+    }
+
+    // --- Collection Notifications ---
+    match /notifications/{notificationId} {
+      // Lecture uniquement par le propriétaire de la notification
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Création autorisée pour tous (système et utilisateurs)
+      allow create: if true;
+      
+      // Mise à jour uniquement par le propriétaire (marquer comme lu)
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // --- Collection Ratings ---
+    match /ratings/{ratingId} {
+      // Lecture publique pour tous
+      allow read: if true;
+      
+      // Création uniquement par les utilisateurs connectés
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      
+      // Mise à jour uniquement par le propriétaire de la note
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
   }
 }

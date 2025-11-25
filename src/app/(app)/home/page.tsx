@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Bell, Heart, Home, Search, Settings, SlidersHorizontal, Star, MessageCircle, HeartPulse, MapPin, ShoppingCart, Tag, Wrench, KeyRound, ShieldCheck, School, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { doc, collection, query, orderBy, limit, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -35,12 +36,17 @@ const services = [
   { name: 'Auto-école', icon: School, href: '/drivingSchools', color: 'bg-indigo-100 dark:bg-indigo-900/50', textColor: 'text-indigo-600 dark:text-indigo-300' },
 ];
 
-const popularCars = [
-  { model: 'Tesla Model 3', price: '25,180', rating: 4.5, imageId: 'car-tesla-model-3' },
-  { model: 'Tesla Model X', price: '28,180', rating: 4.8, imageId: 'car-tesla-model-x' },
-  { model: 'BMW Series 3', price: '32,500', rating: 4.7, imageId: 'car-bmw-series-3' },
-  { model: 'Cadillac Escalade', price: '55,000', rating: 4.9, imageId: 'car-cadillac-escalade' },
-];
+interface Vehicle {
+  id: string;
+  title: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  imageUrls?: string[];
+  imageUrl?: string;
+  status?: string;
+}
 
 
 export default function HomePage() {
@@ -50,16 +56,122 @@ export default function HomePage() {
   const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
   const [searchTerm, setSearchTerm] = useState('');
   const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [togglingFavorite, setTogglingFavorite] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const filteredCars = useMemo(() => {
-    if (!searchTerm) {
-      return popularCars;
-    }
-    return popularCars.filter(car =>
-      car.model.toLowerCase().includes(searchTerm.toLowerCase())
+  // Fetch popular vehicles from Firebase
+  const vehiclesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(
+      collection(firestore, 'vehicles'),
+      orderBy('createdAt', 'desc'),
+      limit(6)
     );
-  }, [searchTerm]);
+  }, [firestore]);
+
+  const { data: vehicles, isLoading: isVehiclesLoading } = useCollection<Vehicle>(vehiclesQuery);
+
+  // Fetch user's favorites
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!user || !firestore) return;
+
+      try {
+        const favDocRef = doc(firestore, 'favorites', user.uid);
+        const favSnap = await getDoc(favDocRef);
+        
+        if (favSnap.exists()) {
+          setFavoriteIds(favSnap.data().vehicleIds || []);
+        }
+      } catch (err) {
+        console.error('Error fetching favorites:', err);
+      }
+    };
+
+    fetchFavorites();
+  }, [user, firestore]);
+
+  // Toggle favorite
+  const toggleFavorite = async (vehicleId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Connexion requise',
+        description: 'Vous devez être connecté pour ajouter aux favoris',
+      });
+      return;
+    }
+
+    if (!firestore) return;
+
+    setTogglingFavorite(vehicleId);
+    const isFavorite = favoriteIds.includes(vehicleId);
+
+    try {
+      const favDocRef = doc(firestore, 'favorites', user.uid);
+      const favSnap = await getDoc(favDocRef);
+
+      if (isFavorite) {
+        // Remove from favorites
+        if (favSnap.exists()) {
+          await updateDoc(favDocRef, {
+            vehicleIds: arrayRemove(vehicleId),
+            updatedAt: new Date(),
+          });
+        }
+        setFavoriteIds(prev => prev.filter(id => id !== vehicleId));
+        toast({
+          title: 'Retiré des favoris',
+          description: 'Cette offre a été retirée de vos favoris',
+        });
+      } else {
+        // Add to favorites
+        if (favSnap.exists()) {
+          await updateDoc(favDocRef, {
+            vehicleIds: arrayUnion(vehicleId),
+            updatedAt: new Date(),
+          });
+        } else {
+          await setDoc(favDocRef, {
+            userId: user.uid,
+            vehicleIds: [vehicleId],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+        setFavoriteIds(prev => [...prev, vehicleId]);
+        toast({
+          title: 'Ajouté aux favoris ❤️',
+          description: 'Cette offre a été ajoutée à vos favoris',
+        });
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Impossible de modifier les favoris',
+      });
+    } finally {
+      setTogglingFavorite(null);
+    }
+  };
+
+  const filteredCars = useMemo(() => {
+    const vehicleList = vehicles || [];
+    if (!searchTerm) {
+      return vehicleList;
+    }
+    return vehicleList.filter(vehicle =>
+      vehicle.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [vehicles, searchTerm]);
 
 
   const userDocRef = useMemoFirebase(() => {
@@ -211,42 +323,101 @@ export default function HomePage() {
               Voir tout
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {filteredCars.map((car) => {
-              const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
-              return (
-                <Card key={car.model} className="rounded-2xl overflow-hidden group shadow-md border-none">
-                  <CardContent className="p-3">
-                    <div className="relative">
-                      <Button variant="ghost" size="icon" className="absolute top-2 left-2 h-7 w-7 rounded-full bg-black/30 text-white hover:bg-black/50 hover:text-red-500">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                      {carImage && (
-                        <Image
-                          src={carImage.imageUrl}
-                          alt={car.model}
-                          width={300}
-                          height={200}
-                          className="rounded-lg w-full aspect-[4/3] object-cover"
-                          data-ai-hint={carImage.imageHint}
-                        />
-                      )}
-                    </div>
-                    <div className="pt-3">
-                      <h3 className="font-bold text-md truncate">{car.model}</h3>
-                      <div className="flex items-center justify-between mt-2">
-                         <p className="font-bold text-sm text-primary">${car.price}</p>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-bold">{car.rating}</span>
+          
+          {isVehiclesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground">Chargement des véhicules...</span>
+            </div>
+          ) : filteredCars.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Aucun véhicule disponible pour le moment.</p>
+              <Link href="/dashboard/vente/nouveau" className="text-primary hover:underline mt-2 inline-block">
+                Soyez le premier à publier une annonce !
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {filteredCars.map((vehicle) => {
+                const vehicleImageUrl = vehicle.imageUrls?.[0] || vehicle.imageUrl;
+                const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
+                const isFavorite = favoriteIds.includes(vehicle.id);
+                const isToggling = togglingFavorite === vehicle.id;
+                
+                return (
+                  <Link href={`/vehicles/${vehicle.id}`} key={vehicle.id}>
+                    <Card className="rounded-2xl overflow-hidden group shadow-md border-none hover:shadow-lg transition-shadow">
+                      <CardContent className="p-3">
+                        <div className="relative">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className={cn(
+                              "absolute top-2 left-2 h-7 w-7 rounded-full z-10 transition-all",
+                              isFavorite 
+                                ? "bg-red-500/80 text-white hover:bg-red-600" 
+                                : "bg-black/30 text-white hover:bg-black/50 hover:text-red-500"
+                            )}
+                            onClick={(e) => toggleFavorite(vehicle.id, e)}
+                            disabled={isToggling}
+                          >
+                            {isToggling ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Heart className={cn(
+                                "h-4 w-4 transition-all",
+                                isFavorite && "fill-white"
+                              )} />
+                            )}
+                          </Button>
+                          {vehicleImageUrl ? (
+                            <Image
+                              src={vehicleImageUrl}
+                              alt={vehicle.title || `${vehicle.make} ${vehicle.model}`}
+                              width={300}
+                              height={200}
+                              className="rounded-lg w-full aspect-[4/3] object-cover"
+                            />
+                          ) : placeholderImage ? (
+                            <Image
+                              src={placeholderImage.imageUrl}
+                              alt={vehicle.title || `${vehicle.make} ${vehicle.model}`}
+                              width={300}
+                              height={200}
+                              className="rounded-lg w-full aspect-[4/3] object-cover"
+                              data-ai-hint={placeholderImage.imageHint}
+                            />
+                          ) : (
+                            <div className="w-full aspect-[4/3] bg-muted rounded-lg flex items-center justify-center">
+                              <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                        <div className="pt-3">
+                          <h3 className="font-bold text-md truncate">
+                            {vehicle.title || `${vehicle.make} ${vehicle.model}`}
+                          </h3>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {vehicle.make} {vehicle.model} - {vehicle.year}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="font-bold text-sm text-primary">
+                              ${vehicle.price?.toLocaleString()}
+                            </p>
+                            {vehicle.status === 'active' && (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                Disponible
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
     </div>

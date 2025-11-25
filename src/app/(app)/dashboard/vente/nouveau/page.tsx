@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Camera, X } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useStorage } from '@/firebase';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 
 export default function AddVehiclePage() {
@@ -19,6 +20,7 @@ export default function AddVehiclePage() {
     const { toast } = useToast();
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const storage = useStorage();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -37,13 +39,29 @@ export default function AddVehiclePage() {
         console.log('User state:', { user, isUserLoading, uid: user?.uid });
     }, [user, isUserLoading]);
 
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            toast({
+                variant: 'destructive',
+                title: 'Non connecté',
+                description: 'Vous devez être connecté pour ajouter un véhicule',
+            });
+        }
+    }, [user, isUserLoading, toast]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
     };
 
-    const handleFileSelect = () => {
-        fileInputRef.current?.click();
+    const handleFileSelect = (e?: React.MouseEvent) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ''; // Reset to allow selecting same file again
+            fileInputRef.current.click();
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +129,50 @@ export default function AddVehiclePage() {
         });
     };
 
+    const [uploadProgress, setUploadProgress] = useState<string>('');
+
+    const uploadImages = async (vehicleId: string): Promise<string[]> => {
+        const imageUrls: string[] = [];
+        
+        for (let i = 0; i < selectedImages.length; i++) {
+            const file = selectedImages[i];
+            setUploadProgress(`Upload image ${i + 1}/${selectedImages.length}...`);
+            
+            try {
+                // Create a unique filename - remove special characters from filename
+                const timestamp = Date.now();
+                const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const fileName = `vehicles/${vehicleId}/${timestamp}_${safeName}`;
+                
+                console.log('Uploading file:', fileName, 'Size:', file.size);
+                
+                const storageRef = ref(storage, fileName);
+                
+                // Upload the file
+                console.log('Starting upload...');
+                const snapshot = await uploadBytes(storageRef, file);
+                console.log('Upload complete:', snapshot.metadata.fullPath);
+                
+                // Get the download URL
+                const downloadUrl = await getDownloadURL(storageRef);
+                console.log('Download URL:', downloadUrl);
+                
+                imageUrls.push(downloadUrl);
+            } catch (uploadError: any) {
+                console.error('Error uploading image:', uploadError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Erreur upload',
+                    description: `Erreur lors de l'upload de l'image ${i + 1}: ${uploadError.message || uploadError.code || 'Erreur inconnue'}`,
+                });
+                throw uploadError;
+            }
+        }
+        
+        setUploadProgress('');
+        return imageUrls;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -138,10 +200,20 @@ export default function AddVehiclePage() {
         setIsLoading(true);
 
         try {
-            const vehicleRef = doc(firestore, 'vehicles', `${user.uid}_${Date.now()}`);
+            const vehicleId = `${user.uid}_${Date.now()}`;
+            const vehicleRef = doc(firestore, 'vehicles', vehicleId);
 
-            // TODO: Upload images to Firebase Storage and get URLs
-            // For now, we'll save the vehicle data without images
+            // Upload images to Firebase Storage
+            let imageUrls: string[] = [];
+            if (selectedImages.length > 0) {
+                toast({
+                    title: 'Upload en cours...',
+                    description: 'Vos photos sont en cours de téléchargement',
+                });
+                imageUrls = await uploadImages(vehicleId);
+            }
+
+            // Save vehicle data with image URLs
             await setDoc(vehicleRef, {
                 userId: user.uid,
                 make: formData.make,
@@ -150,14 +222,14 @@ export default function AddVehiclePage() {
                 price: parseFloat(formData.price),
                 description: formData.description,
                 title: `${formData.make} ${formData.model} ${formData.year}`,
-                // imageUrls: [], // Will be added when we implement Firebase Storage upload
+                imageUrls: imageUrls,
                 createdAt: serverTimestamp(),
                 status: 'active',
             }, { merge: true });
 
             toast({
                 title: 'Véhicule ajouté !',
-                description: 'Votre véhicule a été mis en vente avec succès',
+                description: `Votre véhicule a été mis en vente avec ${imageUrls.length} photo(s)`,
             });
 
             // Clean up image previews
@@ -261,7 +333,7 @@ export default function AddVehiclePage() {
                                     className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center text-muted-foreground hover:border-primary/50 transition-colors cursor-pointer"
                                     onDragOver={handleDragOver}
                                     onDrop={handleDrop}
-                                    onClick={handleFileSelect}
+                                    onClick={(e) => handleFileSelect(e)}
                                 >
                                     <Camera className="h-10 w-10 mb-2" />
                                     <p className="font-semibold">Télécharger des photos</p>
@@ -273,22 +345,19 @@ export default function AddVehiclePage() {
                                         variant="outline"
                                         size="sm"
                                         className="mt-4"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleFileSelect();
-                                        }}
+                                        onClick={(e) => handleFileSelect(e)}
                                     >
                                         Choisir des fichiers
                                     </Button>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={handleFileChange}
-                                    />
                                 </div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                />
 
                                 {/* Image Previews */}
                                 {imagePreviews.length > 0 && (
@@ -316,8 +385,19 @@ export default function AddVehiclePage() {
                                 )}
                             </div>
                             <Button type="submit" className="w-full" disabled={isLoading || isUserLoading || !user}>
-                                {isLoading ? 'Enregistrement...' : isUserLoading ? 'Chargement...' : 'Mettre en vente'}
+                                {isLoading 
+                                    ? (uploadProgress || 'Enregistrement...') 
+                                    : isUserLoading 
+                                        ? 'Chargement...' 
+                                        : !user 
+                                            ? 'Connectez-vous pour continuer' 
+                                            : 'Mettre en vente'}
                             </Button>
+                            {!isUserLoading && !user && (
+                                <p className="text-sm text-destructive text-center mt-2">
+                                    Vous devez être <Link href="/login" className="underline font-medium">connecté</Link> pour ajouter un véhicule.
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
                 </form>

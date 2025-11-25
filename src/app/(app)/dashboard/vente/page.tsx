@@ -27,6 +27,8 @@ interface Vehicle {
     description?: string;
     status: string;
     createdAt: any;
+    imageUrls?: string[];
+    imageUrl?: string;
 }
 
 export default function SalesDashboardPage() {
@@ -148,21 +150,30 @@ export default function SalesDashboardPage() {
                 ) : (
                     <div className="space-y-4">
                         {vehicles.map((vehicle) => {
-                            // Use a placeholder image for now
-                            const vehicleImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
+                            // Use vehicle image from Firebase if available, otherwise use placeholder
+                            const vehicleImageUrl = vehicle.imageUrls?.[0] || vehicle.imageUrl;
+                            const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
 
                             return (
                                 <Link href={`/dashboard/vente/${vehicle.id}`} passHref key={vehicle.id}>
                                     <Card className="shadow-md cursor-pointer hover:shadow-lg transition-shadow">
                                         <CardContent className="p-4 flex items-center gap-4">
-                                            {vehicleImage && (
+                                            {vehicleImageUrl ? (
                                                 <Image
-                                                    src={vehicleImage.imageUrl}
+                                                    src={vehicleImageUrl}
                                                     alt={vehicle.title}
                                                     width={100}
                                                     height={75}
                                                     className="rounded-lg object-cover aspect-[4/3]"
-                                                    data-ai-hint={vehicleImage.imageHint}
+                                                />
+                                            ) : placeholderImage && (
+                                                <Image
+                                                    src={placeholderImage.imageUrl}
+                                                    alt={vehicle.title}
+                                                    width={100}
+                                                    height={75}
+                                                    className="rounded-lg object-cover aspect-[4/3]"
+                                                    data-ai-hint={placeholderImage.imageHint}
                                                 />
                                             )}
                                             <div className="flex-grow">

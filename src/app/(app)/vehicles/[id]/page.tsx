@@ -17,6 +17,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useParams, useRouter } from 'next/navigation';
+import { useDoc } from '@/firebase/firestore/use-doc';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { doc } from 'firebase/firestore';
 
 
 const vehiclesData = [
@@ -35,22 +38,30 @@ const seller = {
 }
 
 export default function VehicleDetailsPage() {
-    const router = useRouter();
-    const params = useParams();
-    const vehicleId = params.id as string;
-    const vehicle = vehiclesData.find(v => v.id === vehicleId);
-    const sellerAvatar = PlaceHolderImages.find(p => p.id === seller.avatarId);
-
-    if (!vehicle) {
-        return (
-            <div className="flex h-screen flex-col items-center justify-center bg-muted">
-                <p>Véhicule non trouvé.</p>
-                <Button onClick={() => router.back()} className="mt-4">Retour</Button>
-            </div>
-        )
-    }
-
-    const vehicleImages = vehicle.imageIds.map(id => PlaceHolderImages.find(p => p.id === id)).filter(Boolean);
+  const router = useRouter();
+  const params = useParams();
+  const firestore = useFirestore();
+  const vehicleId = params.id as string;
+  const vehicleDoc = useMemoFirebase(() =>
+        firestore && vehicleId ? doc(firestore, 'vehicles', vehicleId) : null,
+    [firestore, vehicleId]
+  );
+  const { data: vehicle, isLoading, error } = useDoc<any>(vehicleDoc);
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Chargement…</div>;
+  }
+  if (error || !vehicle) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center bg-muted">
+        <p>Véhicule non trouvé.</p>
+        <Button onClick={() => router.back()} className="mt-4">Retour</Button>
+      </div>
+    );
+  }
+  const images = (Array.isArray(vehicle.imageUrls) && vehicle.imageUrls.length > 0)
+    ? vehicle.imageUrls
+    : (vehicle.imageUrl ? [vehicle.imageUrl] : []);
+  const sellerAvatar = PlaceHolderImages.find(p => p.id === seller.avatarId);
 
   return (
     <div className="min-h-screen bg-muted">
@@ -71,16 +82,16 @@ export default function VehicleDetailsPage() {
       <main className="pb-28">
         <Carousel className="w-full">
           <CarouselContent>
-            {vehicleImages.map((img, index) => (
+            {images.map((img, index) => (
               img && (
                 <CarouselItem key={index}>
                   <div className="relative w-full h-[40vh]">
                      <Image
-                      src={img.imageUrl}
+                      src={img}
                       alt={`${vehicle.model} - Image ${index + 1}`}
                       fill
                       className="object-cover"
-                      data-ai-hint={img.imageHint}
+                      data-ai-hint={img}
                       priority={index === 0}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>

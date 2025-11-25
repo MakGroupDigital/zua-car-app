@@ -9,6 +9,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Input } from '@/components/ui/input';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { collection } from 'firebase/firestore'
 
 const brands = [
     { name: 'Tesla', logoId: 'logo-tesla' },
@@ -17,35 +20,30 @@ const brands = [
     { name: 'Mazda', logoId: 'logo-mazda' },
 ];
 
-const vehiclesData = [
-  { id: 'tesla-model-3', model: 'Tesla Model 3', price: '25,180', rating: 4.5, imageId: 'car-tesla-model-3', brand: 'Tesla' },
-  { id: 'tesla-model-x', model: 'Tesla Model X', price: '28,180', rating: 4.8, imageId: 'car-tesla-model-x', brand: 'Tesla' },
-  { id: 'bmw-series-3', model: 'BMW Series 3', price: '32,500', rating: 4.7, imageId: 'car-bmw-series-3', brand: 'BMW' },
-  { id: 'cadillac-escalade', model: 'Cadillac Escalade', price: '55,000', rating: 4.9, imageId: 'car-cadillac-escalade', brand: 'Cadillac' },
-  { id: 'toyota-prado', model: 'Toyota Prado', price: '45,000', rating: 4.6, imageId: 'car-bmw-series-3', brand: 'Toyota' }, // Placeholder image
-  { id: 'mazda-cx-5', model: 'Mazda CX-5', price: '29,000', rating: 4.7, imageId: 'car-tesla-model-x', brand: 'Mazda' }, // Placeholder image
-];
-
 
 export default function VehiclesPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
     
+    const firestore = useFirestore();
+    const vehiclesCollectionRef = useMemoFirebase(
+      () => firestore ? collection(firestore, 'vehicles') : null,
+      [firestore]
+    );
+    const { data: rawVehicles, isLoading, error } = useCollection<any>(vehiclesCollectionRef);
+    
     const vehicles = useMemo(() => {
-        let filteredVehicles = vehiclesData;
-
+        let filteredVehicles = rawVehicles ?? [];
         if (selectedBrand) {
             filteredVehicles = filteredVehicles.filter(vehicle => vehicle.brand === selectedBrand);
         }
-
         if (searchTerm) {
             filteredVehicles = filteredVehicles.filter(vehicle =>
-                vehicle.model.toLowerCase().includes(searchTerm.toLowerCase())
+                vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
-
         return filteredVehicles;
-    }, [searchTerm, selectedBrand]);
+    }, [rawVehicles, searchTerm, selectedBrand]);
 
 
   return (
@@ -104,8 +102,13 @@ export default function VehiclesPage() {
 
         {/* Vehicle Grid */}
         <div className="grid grid-cols-2 gap-4 pb-4">
+          {isLoading && (
+            <div className="col-span-2 text-center py-10">Chargement…</div>
+          )}
+          {error && (
+            <div className="col-span-2 text-center text-red-500 py-10">Erreur de chargement…</div>
+          )}
           {vehicles.map((car) => {
-              const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
               return (
                 <Link key={car.id} href={`/vehicles/${car.id}`} passHref>
                     <Card className="rounded-2xl overflow-hidden group shadow-md border-none h-full">
@@ -114,16 +117,25 @@ export default function VehiclesPage() {
                           <Button variant="ghost" size="icon" className="absolute top-2 left-2 h-7 w-7 rounded-full bg-black/30 text-white hover:bg-black/50 hover:text-red-500 z-10">
                             <Heart className="h-4 w-4" />
                           </Button>
-                          {carImage && (
-                            <Image
-                              src={carImage.imageUrl}
-                              alt={car.model}
-                              width={300}
-                              height={200}
-                              className="rounded-lg w-full aspect-[4/3] object-cover"
-                              data-ai-hint={carImage.imageHint}
-                            />
-                          )}
+                          {(() => {
+                            let url = car.imageUrl;
+                            if (!url && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) url = car.imageUrls[0];
+                            if (url) {
+                              return (
+                                <Image src={url} alt={car.model} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover" />
+                              );
+                            } else if (car.imageId) {
+                              const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
+                              if (carImage) {
+                                return (
+                                  <Image src={carImage.imageUrl} alt={car.model} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={carImage.imageHint} />
+                                );
+                              }
+                            }
+                            return (
+                              <div className="flex items-center justify-center w-full h-[150px] bg-muted text-xs text-muted-foreground">Aucune image</div>
+                            );
+                          })()}
                         </div>
                         <div className="pt-3 flex flex-col flex-grow">
                           <h3 className="font-bold text-md truncate">{car.model}</h3>

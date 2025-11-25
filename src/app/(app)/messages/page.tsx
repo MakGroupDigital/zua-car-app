@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -58,7 +58,7 @@ interface Message {
     createdAt: Timestamp;
 }
 
-export default function MessagesPage() {
+function MessagesPageContent() {
     const searchParams = useSearchParams();
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
@@ -708,5 +708,17 @@ export default function MessagesPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function MessagesPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-muted flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        }>
+            <MessagesPageContent />
+        </Suspense>
     );
 }

@@ -63,3 +63,4 @@ export function useVehicleRatings(firestore: Firestore | null, vehicleIds: strin
   return { ratings, isLoading };
 }
 
+

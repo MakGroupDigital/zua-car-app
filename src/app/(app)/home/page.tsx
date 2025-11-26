@@ -300,22 +300,23 @@ export default function HomePage() {
 
   const userDisplayName = userProfile?.firstName ? `${userProfile.firstName}` : 'Utilisateur';
   const userInitials = getInitials(userProfile?.firstName, userProfile?.lastName);
-  
+
   // Get user photo URL from Firestore profile or Firebase Auth
   const userPhotoURL = userProfile?.photoURL || user?.photoURL;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background font-body text-foreground relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 font-body text-foreground relative overflow-hidden">
+      {/* Animated background elements with primary colors */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
       </div>
 
-      {/* Top User Info Bar */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/40 shadow-sm">
+      {/* Top User Info Bar with primary colors */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-primary/10 via-background/90 to-accent/10 border-b border-primary/20 shadow-lg">
         <div className="p-4 pb-3">
-          <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
             <button
               onClick={() => {
                 if (permissionStatus === 'denied' || permissionStatus === 'prompt') {
@@ -341,7 +342,7 @@ export default function HomePage() {
               )}
               disabled={isLocationLoading}
             >
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300">
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-300 border border-primary/30">
                 {isLocationLoading ? (
                   <Loader2 className="h-4 w-4 text-primary animate-spin" />
                 ) : (
@@ -349,74 +350,74 @@ export default function HomePage() {
                     "h-4 w-4",
                     permissionStatus === 'granted' && location 
                       ? "text-primary animate-pulse" 
-                      : "text-muted-foreground"
+                      : "text-primary/70"
                   )} style={{ animationDuration: '2s' }} />
                 )}
               </div>
               <div className="flex flex-col items-start min-w-0">
                 {permissionStatus === 'granted' && location ? (
                   <>
-                    <span className="font-medium text-sm bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate max-w-[150px]">
+                    <span className="font-medium text-sm bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate max-w-[150px]">
                       {location.city}, {location.country}
                     </span>
                     {currentTime && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-primary/70 font-medium">
                         {currentTime}
                       </span>
                     )}
                   </>
                 ) : permissionStatus === 'denied' ? (
-                  <span className="font-medium text-sm text-muted-foreground">
+                  <span className="font-medium text-sm text-primary/70">
                     Partager votre localisation
                   </span>
                 ) : (
-                  <span className="font-medium text-sm text-muted-foreground">
+                  <span className="font-medium text-sm text-primary/70">
                     {isLocationLoading ? 'Chargement...' : 'Partager votre localisation'}
                   </span>
                 )}
-              </div>
+           </div>
             </button>
-            <div className="flex items-center gap-3">
+           <div className="flex items-center gap-3">
               <Link href="/notifications" className="relative group">
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="rounded-full bg-gradient-to-br from-card to-card/80 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-border/50"
+                  className="rounded-full bg-gradient-to-br from-primary/10 to-accent/10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-primary/30 hover:border-primary/50"
                 >
-                  <Bell className="h-5 w-5 group-hover:animate-bounce" />
+                  <Bell className="h-5 w-5 text-primary group-hover:animate-bounce group-hover:text-accent transition-colors" />
                   {unreadNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg animate-pulse">
+                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg animate-pulse border border-white/20">
                       {unreadNotifications > 9 ? '9+' : unreadNotifications}
                     </span>
                   )}
                 </Button>
               </Link>
-              
+            
               <Link href="/profile" className="group">
                 <div className="relative">
-                  <Avatar className="h-10 w-10 border-2 border-primary/50 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ring-2 ring-primary/20 group-hover:ring-primary/40">
+                  <Avatar className="h-10 w-10 border-2 border-primary shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ring-2 ring-primary/30 group-hover:ring-accent/50">
                     {userPhotoURL && <AvatarImage src={userPhotoURL} alt="Photo de profil" />}
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background shadow-sm" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-accent rounded-full border-2 border-background shadow-sm ring-1 ring-primary/30" />
                 </div>
               </Link>
             </div>
-          </div>
+           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="p-4 space-y-6 pb-20">
-        {/* Search Bar */}
+        {/* Search Bar with primary colors */}
         <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
           <div className="relative flex-grow group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300 z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60 group-focus-within:text-primary transition-colors duration-300 z-10" />
             <Input 
               placeholder="Rechercher..." 
-              className="pl-12 pr-4 rounded-full h-12 bg-card border border-border/50 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 shadow-sm"
+              className="pl-12 pr-4 rounded-full h-12 bg-gradient-to-r from-card to-primary/5 border-2 border-primary/20 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 shadow-md hover:shadow-lg transition-all duration-300"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -424,7 +425,7 @@ export default function HomePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300"
                 onClick={() => setSearchTerm('')}
               >
                 <X className="h-4 w-4" />
@@ -432,23 +433,23 @@ export default function HomePage() {
             )}
           </div>
           
-          {/* Shopping Cart Button */}
+          {/* Shopping Cart Button with gradient */}
           <Link href="/vehicles">
             <Button 
               size="icon" 
-              className="rounded-full h-12 w-12 bg-primary text-primary-foreground shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+              className="rounded-full h-12 w-12 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border-2 border-primary/30 hover:border-accent/50"
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>
           </Link>
         </div>
 
-        {/* Categories Section */}
+        {/* Categories Section with primary colors */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
           <div className="flex items-center gap-4 mb-4">
-            <h2 className="text-lg font-bold relative">
+            <h2 className="text-lg font-bold relative bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Catégories
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent" />
             </h2>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
@@ -459,26 +460,26 @@ export default function HomePage() {
                 <Link 
                   href={service.href} 
                   key={service.name}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 group"
                 >
                   <div className={cn(
                     "flex flex-col items-center gap-2 w-20",
                     "transition-all duration-300"
                   )}>
                     <div className={cn(
-                      "flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 border-2",
+                      "flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 border-2 group-hover:scale-110",
                       isActive 
-                        ? "bg-primary border-primary/50 shadow-md" 
-                        : "bg-muted border-border"
+                        ? "bg-gradient-to-br from-primary to-accent border-primary/50 shadow-lg" 
+                        : "bg-gradient-to-br from-muted to-primary/5 border-primary/20 group-hover:border-primary/40 group-hover:from-primary/10 group-hover:to-accent/10"
                     )}>
                       <Icon className={cn(
                         "h-7 w-7 transition-colors duration-300",
-                        isActive ? "text-primary-foreground" : "text-muted-foreground"
+                        isActive ? "text-primary-foreground" : "text-primary/70 group-hover:text-primary"
                       )} />
                     </div>
                     <span className={cn(
                       "text-xs font-medium text-center transition-colors duration-300",
-                      isActive ? "text-primary font-semibold" : "text-muted-foreground"
+                      isActive ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-primary"
                     )}>
                       {service.name}
                     </span>
@@ -489,15 +490,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Popular Cars Section */}
+        {/* Popular Cars Section with primary colors */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold">Voitures Populaires</h2>
+            <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Voitures Populaires
+            </h2>
             <Link 
               href="/vehicles" 
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-sm font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline transition-all duration-300 hover:scale-105"
             >
-              Voir tout
+              Voir tout →
             </Link>
           </div>
           
@@ -505,16 +508,16 @@ export default function HomePage() {
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="text-muted-foreground">Chargement des véhicules...</span>
+                <span className="text-primary/70 font-medium">Chargement des véhicules...</span>
               </div>
             </div>
           ) : filteredCars.length === 0 ? (
-            <div className="text-center py-12 bg-card/50 backdrop-blur-sm rounded-2xl border-2 border-dashed border-border">
-              <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground mb-2">Aucun véhicule disponible pour le moment.</p>
-              <Link href="/dashboard/vente/nouveau" className="text-primary hover:underline font-medium inline-flex items-center gap-1 group">
+            <div className="text-center py-12 bg-gradient-to-br from-card to-primary/10 backdrop-blur-sm rounded-2xl border-2 border-dashed border-primary/30">
+              <ShoppingCart className="h-12 w-12 text-primary/50 mx-auto mb-4 opacity-50" />
+              <p className="text-primary/70 mb-2 font-medium">Aucun véhicule disponible pour le moment.</p>
+              <Link href="/dashboard/vente/nouveau" className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline font-medium inline-flex items-center gap-1 group">
                 Soyez le premier à publier une annonce !
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                <span className="group-hover:translate-x-1 transition-transform text-accent">→</span>
               </Link>
             </div>
           ) : (
@@ -527,23 +530,23 @@ export default function HomePage() {
                 const vehicleRating = vehicleRatings[vehicle.id] || { average: 0, count: 0 };
                 const rating = vehicleRating.average || 0;
                 
-                return (
+              return (
                   <Link 
                     href={`/vehicles/${vehicle.id}`} 
                     key={vehicle.id}
                     className="flex-shrink-0 w-[280px] group"
                   >
-                    <Card className="rounded-2xl overflow-hidden shadow-md border border-border/50 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-card">
+                    <Card className="rounded-2xl overflow-hidden shadow-md border-2 border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-card to-primary/5">
                       <CardContent className="p-0">
-                        <div className="relative">
+                    <div className="relative">
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             className={cn(
-                              "absolute top-3 right-3 h-8 w-8 rounded-full z-20 transition-all duration-300",
+                              "absolute top-3 right-3 h-8 w-8 rounded-full z-20 transition-all duration-300 border-2",
                               isFavorite 
-                                ? "bg-red-500/90 text-white hover:bg-red-600" 
-                                : "bg-white/80 backdrop-blur-sm text-muted-foreground hover:bg-white hover:text-red-500"
+                                ? "bg-gradient-to-br from-primary to-accent text-white hover:from-primary/90 hover:to-accent/90 border-primary/30 shadow-lg" 
+                                : "bg-white/90 backdrop-blur-sm text-primary/70 hover:bg-primary/10 hover:text-primary border-primary/20 hover:border-primary/40"
                             )}
                             onClick={(e) => toggleFavorite(vehicle.id, e)}
                             disabled={isToggling}
@@ -569,7 +572,7 @@ export default function HomePage() {
                             </div>
                           ) : placeholderImage ? (
                             <div className="relative w-full h-[180px] overflow-hidden bg-muted">
-                              <Image
+                        <Image
                                 src={placeholderImage.imageUrl}
                                 alt={vehicle.title || `${vehicle.make} ${vehicle.model}`}
                                 fill
@@ -583,13 +586,13 @@ export default function HomePage() {
                             </div>
                           )}
                         </div>
-                        <div className="p-4 space-y-2">
+                        <div className="p-4 space-y-2 bg-gradient-to-b from-card to-primary/5">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-lg text-primary mb-1">
+                              <p className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
                                 ${vehicle.price?.toLocaleString()}
                               </p>
-                              <h3 className="font-semibold text-base truncate">
+                              <h3 className="font-semibold text-base truncate text-foreground">
                                 {vehicle.title || `${vehicle.make} ${vehicle.model}`}
                               </h3>
                             </div>
@@ -600,27 +603,27 @@ export default function HomePage() {
                                 <Star
                                   key={i}
                                   className={cn(
-                                    "h-4 w-4",
+                                    "h-4 w-4 transition-colors",
                                     i < Math.floor(rating)
                                       ? "fill-primary text-primary"
                                       : i < rating
-                                      ? "fill-primary/50 text-primary/50"
+                                      ? "fill-accent/50 text-accent/50"
                                       : "fill-none text-muted-foreground"
                                   )}
                                 />
                               ))}
-                              <span className="text-sm text-muted-foreground ml-1">
+                              <span className="text-sm text-primary font-medium ml-1">
                                 {rating.toFixed(1)}
                               </span>
                             </div>
                           )}
                         </div>
-                      </CardContent>
-                    </Card>
+                  </CardContent>
+                </Card>
                   </Link>
-                );
-              })}
-            </div>
+              );
+            })}
+          </div>
           )}
         </div>
       </main>

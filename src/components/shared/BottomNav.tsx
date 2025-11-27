@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Home, HeartPulse, MessageCircle, Settings, Plus, Tag, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Dialog,
   DialogContent,
@@ -66,17 +68,42 @@ export function BottomNav() {
           <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-10 group">
             <Button
               onClick={() => setIsDialogOpen(true)}
-              size="icon"
               className={cn(
-                "h-16 w-16 rounded-full shadow-2xl transition-all duration-300",
+                "h-16 px-4 rounded-full shadow-2xl transition-all duration-300 flex items-center gap-2",
                 "bg-gradient-to-br from-accent via-accent to-accent/80",
                 "text-accent-foreground border-4 border-background",
                 "hover:from-accent/90 hover:via-accent/90 hover:to-accent/70",
-                "hover:scale-110 hover:shadow-3xl hover:rotate-90",
+                "hover:scale-110 hover:shadow-3xl",
                 "animate-pulse hover:animate-none"
               )}
             >
-              <Plus className="h-8 w-8 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+              {(() => {
+                const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
+                if (logoImage) {
+                  return (
+                    <>
+                      <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                        <Image 
+                          src={logoImage.imageUrl} 
+                          alt="Logo" 
+                          fill 
+                          className="object-cover"
+                          data-ai-hint={logoImage.imageHint}
+                        />
+                      </div>
+                      <Plus className="h-6 w-6 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+                    </>
+                  );
+                }
+                return (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold">Z</span>
+                    </div>
+                    <Plus className="h-6 w-6 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+                  </>
+                );
+              })()}
             </Button>
           </div>
 

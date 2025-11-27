@@ -121,10 +121,32 @@ export default function PartsPage() {
         <h1 className="text-xl font-bold">Pièces Détachées</h1>
         </div>
         <Link href="/parts/nouveau">
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Vendre
-          </Button>
+          <div className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+            {(() => {
+              const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
+              if (logoImage) {
+                return (
+                  <>
+                    <Image 
+                      src={logoImage.imageUrl} 
+                      alt="Logo" 
+                      fill 
+                      className="object-cover"
+                      data-ai-hint={logoImage.imageHint}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Plus className="h-5 w-5 text-white" />
+                    </div>
+                  </>
+                );
+              }
+              return (
+                <div className="w-full h-full bg-primary flex items-center justify-center">
+                  <Plus className="h-5 w-5 text-white" />
+                </div>
+              );
+            })()}
+          </div>
         </Link>
       </header>
       
@@ -285,52 +307,44 @@ export default function PartsPage() {
           </div>
         )}
 
-        {/* Parts Grid */}
+        {/* Parts List */}
         {!isLoading && !error && parts.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
           {parts.map((part) => {
               const partImageUrl = part.imageUrls?.[0] || part.imageUrl;
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'part-oil-filter');
               
             return (
               <Link key={part.id} href={`/parts/${part.id}`} passHref>
-                  <Card className="rounded-2xl overflow-hidden group shadow-md border-none h-full hover:shadow-lg transition-shadow">
-                  <CardContent className="p-3 flex flex-col h-full">
-                    <div className="relative bg-muted rounded-lg aspect-[4/3] overflow-hidden">
+                  <Card className="shadow-md cursor-pointer hover:shadow-lg transition-shadow border-none rounded-2xl">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    <div className="relative w-1/3 min-w-[120px]">
                         {partImageUrl ? (
                           <Image
                             src={partImageUrl}
                             alt={part.title || part.name || 'Pièce'}
-                            fill
-                            className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                            width={120}
+                            height={90}
+                            className="rounded-lg w-full aspect-[4/3] object-cover"
                           />
                         ) : placeholderImage ? (
                         <Image
                             src={placeholderImage.imageUrl}
                             alt={part.title || part.name || 'Pièce'}
-                          fill
-                          className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                            width={120}
+                            height={90}
+                            className="rounded-lg w-full aspect-[4/3] object-cover"
                             data-ai-hint={placeholderImage.imageHint}
                         />
                         ) : (
-                          <div className="flex items-center justify-center h-full">
+                          <div className="flex items-center justify-center w-full aspect-[4/3] bg-muted rounded-lg">
                             <Wrench className="h-8 w-8 text-muted-foreground" />
                           </div>
                         )}
-                        {part.condition && (
-                          <span className={cn(
-                            "absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full",
-                            part.condition === 'Neuf' 
-                              ? "bg-green-100 text-green-700" 
-                              : "bg-blue-100 text-blue-700"
-                          )}>
-                            {part.condition === 'Neuf' ? 'Neuf' : 'Occasion'}
-                          </span>
-                      )}
                     </div>
-                    <div className="pt-3 flex flex-col flex-grow">
-                        <h3 className="font-bold text-md truncate">{part.title || part.name}</h3>
-                      <p className="text-xs text-muted-foreground truncate">{part.compatibility}</p>
+                    <div className="flex-grow">
+                        <h3 className="font-bold text-lg truncate">{part.title || part.name}</h3>
+                      <p className="text-sm text-muted-foreground truncate">{part.compatibility}</p>
                       
                       {/* Seller name */}
                       {part.userId && sellerNames[part.userId] && (
@@ -342,12 +356,23 @@ export default function PartsPage() {
                         </div>
                       )}
                       
-                      <div className="flex-grow" />
                       <div className="flex items-center justify-between mt-2">
-                          <p className="font-bold text-lg text-primary">${part.price?.toLocaleString()}</p>
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                            {part.category}
-                          </span>
+                          <p className="text-primary font-semibold text-lg">${part.price?.toLocaleString()}</p>
+                          <div className="flex items-center gap-2">
+                            {part.condition && (
+                              <span className={cn(
+                                "text-xs px-2 py-1 rounded-full font-medium",
+                                part.condition === 'Neuf' 
+                                  ? "bg-green-100 text-green-800" 
+                                  : "bg-blue-100 text-blue-800"
+                              )}>
+                                {part.condition === 'Neuf' ? 'Neuf' : 'Occasion'}
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                              {part.category}
+                            </span>
+                          </div>
                       </div>
                     </div>
                   </CardContent>

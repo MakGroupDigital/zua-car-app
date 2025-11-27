@@ -205,8 +205,8 @@ export default function ProfilePage() {
                 {photoURL ? (
                   <AvatarImage src={photoURL} alt="Photo de profil" />
                 ) : null}
-                <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
-              </Avatar>
+              <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
+            </Avatar>
               
               {/* Camera overlay */}
               <div className={cn(

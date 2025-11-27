@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, Heart, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, Heart, X, Loader2, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -12,6 +12,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore, useMemoFirebase, useUser } from '@/firebase/provider';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
+import { useSellerNames } from '@/hooks/use-seller-names';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -37,6 +38,7 @@ interface Vehicle {
   imageUrls?: string[];
   imageId?: string;
   brand?: string;
+  userId?: string;
 }
 
 export default function VehiclesPage() {
@@ -70,8 +72,16 @@ export default function VehiclesPage() {
       return (rawVehicles || []).map(v => v.id);
     }, [rawVehicles]);
     
+    // Get unique user IDs for fetching seller names
+    const userIds = useMemo(() => {
+      return (rawVehicles || []).map(v => v.userId).filter(Boolean) as string[];
+    }, [rawVehicles]);
+    
     // Fetch ratings for all vehicles
     const { ratings: vehicleRatings } = useVehicleRatings(firestore, vehicleIds);
+    
+    // Fetch seller names
+    const { sellerNames } = useSellerNames(userIds);
     
     const vehicles = useMemo(() => {
         let filteredVehicles = rawVehicles ?? [];
@@ -184,7 +194,7 @@ export default function VehiclesPage() {
                       hasActiveFilters && "border-primary"
                     )}
                   >
-                    <Filter className="h-5 w-5" />
+                <Filter className="h-5 w-5" />
                     {hasActiveFilters && (
                       <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full border-2 border-background" />
                     )}
@@ -275,7 +285,7 @@ export default function VehiclesPage() {
                       onClick={() => setIsFilterDialogOpen(false)}
                     >
                       Appliquer ({vehicles.length} résultat{vehicles.length > 1 ? 's' : ''})
-                    </Button>
+              </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -342,14 +352,14 @@ export default function VehiclesPage() {
                           )}
                         >
                             {brandLogo ? (
-                              <Image 
-                                src={brandLogo.imageUrl}
+                                <Image 
+                                    src={brandLogo.imageUrl}
                                 alt={`${brand} logo`}
                                 width={48}
                                 height={48}
                                 className="w-12 h-12 object-contain"
-                                data-ai-hint={brandLogo.imageHint}
-                              />
+                                    data-ai-hint={brandLogo.imageHint}
+                                />
                             ) : (
                               <div className={cn(
                                 "w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm",
@@ -406,19 +416,19 @@ export default function VehiclesPage() {
                             if (!url && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) url = car.imageUrls[0];
                             if (url) {
                               return (
-                                <Image src={url} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover" />
+                                <Image src={url} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300" />
                               );
                             } else if (car.imageId) {
                               const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
                               if (carImage) {
                                 return (
-                                  <Image src={carImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={carImage.imageHint} />
+                                  <Image src={carImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={carImage.imageHint} />
                                 );
                               }
                             }
                             const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
                             return placeholderImage ? (
-                              <Image src={placeholderImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={placeholderImage.imageHint} />
+                              <Image src={placeholderImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={placeholderImage.imageHint} />
                             ) : (
                               <div className="flex items-center justify-center w-full h-[150px] bg-muted text-xs text-muted-foreground">Aucune image</div>
                             );
@@ -429,14 +439,25 @@ export default function VehiclesPage() {
                           <p className="text-xs text-muted-foreground truncate">
                             {car.make || car.brand} {car.model} {car.year && `- ${car.year}`}
                           </p>
+                          
+                          {/* Seller name */}
+                          {car.userId && sellerNames[car.userId] && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <User className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground truncate">
+                                {sellerNames[car.userId].name}
+                              </span>
+                            </div>
+                          )}
+                          
                           <div className="flex-grow" />
                           <div className="flex items-center justify-between mt-2">
-                             <p className="font-bold text-sm text-primary">${car.price?.toLocaleString() || '0'}</p>
+                             <p className="font-bold text-lg text-primary">${car.price?.toLocaleString() || '0'}</p>
                             {vehicleRating.count > 0 && (
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
                                 <span className="text-xs font-medium text-muted-foreground">{rating.toFixed(1)}</span>
-                              </div>
+                            </div>
                             )}
                           </div>
                         </div>

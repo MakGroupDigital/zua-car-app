@@ -580,12 +580,12 @@ export default function VehicleDetailsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Avatar className="w-12 h-12">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="w-12 h-12">
                                  {seller?.photoURL && <AvatarImage src={seller.photoURL} alt={seller.name} />}
                                 <AvatarFallback>{getSellerInitials()}</AvatarFallback>
-                            </Avatar>
-                            <div>
+                        </Avatar>
+                        <div>
                                 <p className="font-bold flex items-center gap-2">
                                   {sellerLoading ? 'Chargement...' : (seller?.name || 'Vendeur')} 
                                   {seller?.isVerified && <BadgeCheck className="h-5 w-5 text-blue-500" />}
@@ -648,9 +648,9 @@ export default function VehicleDetailsPage() {
                     router.push(`/messages?sellerId=${vehicle?.userId}&vehicleId=${vehicleId}&message=${message}`);
                 }}
               >
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Écrire un message
-            </Button>
+                    <MessageSquare className="mr-2 h-5 w-5" />
+                    Écrire un message
+                </Button>
         </div>
       </footer>
 

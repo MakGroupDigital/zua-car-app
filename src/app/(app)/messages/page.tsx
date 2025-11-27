@@ -485,33 +485,33 @@ function MessagesPageContent() {
         );
     }
 
-    return (
-        <div className="h-full flex flex-col bg-muted">
-            <header className="bg-background p-4 flex items-center justify-between gap-4 shadow-sm shrink-0 sticky top-0 z-10">
-                <div className="flex items-center gap-2">
+  return (
+    <div className="h-full flex flex-col bg-muted">
+      <header className="bg-background p-4 flex items-center justify-between gap-4 shadow-sm shrink-0 sticky top-0 z-10">
+        <div className="flex items-center gap-2">
                     <Button 
                         variant="ghost" 
                         size="icon" 
                         onClick={() => setSelectedConversationId(null)} 
                         className={cn("md:hidden", !selectedConversationId && "hidden")}
                     >
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <Link href="/home" passHref className={cn("md:hidden", selectedConversationId ? "hidden" : "flex")}>
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-6 w-6" />
-                        </Button>
-                    </Link>
-                    {selectedConversation ? (
-                        <>
-                            <Avatar className="h-9 w-9">
+                 <ArrowLeft className="h-6 w-6" />
+            </Button>
+            <Link href="/home" passHref className={cn("md:hidden", selectedConversationId ? "hidden" : "flex")}>
+                <Button variant="ghost" size="icon">
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+            </Link>
+             {selectedConversation ? (
+                <>
+                <Avatar className="h-9 w-9">
                                 {getOtherParticipant(selectedConversation).photoURL && (
                                     <AvatarImage src={getOtherParticipant(selectedConversation).photoURL} />
                                 )}
                                 <AvatarFallback>
                                     {getInitials(getOtherParticipant(selectedConversation).name)}
                                 </AvatarFallback>
-                            </Avatar>
+                </Avatar>
                             <div>
                                 <h1 className="text-lg font-bold truncate">
                                     {getOtherParticipant(selectedConversation).name}
@@ -522,20 +522,20 @@ function MessagesPageContent() {
                                     </p>
                                 )}
                             </div>
-                        </>
-                    ) : (
-                        <h1 className="text-xl font-bold">Messages</h1>
-                    )}
-                </div>
-            </header>
+                </>
+            ) : (
+                <h1 className="text-xl font-bold">Messages</h1>
+            )}
+        </div>
+      </header>
 
-            <main className="flex-1 flex md:flex-row overflow-hidden">
+      <main className="flex-1 flex md:flex-row overflow-hidden">
                 <aside className={cn(
                     "w-full md:w-1/3 lg:w-1/4 bg-card border-r flex flex-col", 
                     selectedConversationId && "hidden md:flex"
                 )}>
-                    <div className="relative p-2 shrink-0">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <div className="relative p-2 shrink-0">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input 
                             placeholder="Rechercher..." 
                             className="pl-10 h-11 rounded-full bg-muted border-none"
@@ -557,10 +557,10 @@ function MessagesPageContent() {
                             <p className="text-sm text-muted-foreground mt-1">
                                 Contactez un vendeur pour démarrer une conversation
                             </p>
-                        </div>
+            </div>
                     ) : (
-                        <ScrollArea className="flex-1">
-                            <div className="space-y-1 p-2">
+            <ScrollArea className="flex-1">
+                <div className="space-y-1 p-2">
                                 {filteredConversations.map(convo => {
                                     const otherParticipant = getOtherParticipant(convo);
                                     const unreadCount = convo.unreadCount?.[user.uid] || 0;
@@ -576,27 +576,27 @@ function MessagesPageContent() {
                                                     : 'hover:bg-muted'
                                             )}
                                         >
-                                            <Avatar className="h-12 w-12 border-2 border-primary/20">
+                        <Avatar className="h-12 w-12 border-2 border-primary/20">
                                                 {otherParticipant.photoURL && (
                                                     <AvatarImage src={otherParticipant.photoURL} />
                                                 )}
                                                 <AvatarFallback>
                                                     {getInitials(otherParticipant.name)}
                                                 </AvatarFallback>
-                                            </Avatar>
+                        </Avatar>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center">
                                                     <p className="font-bold truncate">{otherParticipant.name}</p>
                                                     <p className="text-xs text-muted-foreground shrink-0 ml-2">
                                                         {formatTime(convo.lastMessageTime)}
                                                     </p>
-                                                </div>
+                            </div>
                                                 {(convo.vehicleTitle || convo.partTitle || convo.rentalTitle) && (
                                                     <p className="text-xs text-primary truncate">
                                                         {convo.vehicleTitle || convo.partTitle || convo.rentalTitle}
                                                     </p>
                                                 )}
-                                                <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center">
                                                     <p className="text-sm text-muted-foreground truncate">
                                                         {convo.lastMessage || 'Nouvelle conversation'}
                                                     </p>
@@ -605,29 +605,29 @@ function MessagesPageContent() {
                                                             {unreadCount}
                                                         </span>
                                                     )}
-                                                </div>
-                                            </div>
-                                        </button>
+                            </div>
+                        </div>
+                    </button>
                                     );
                                 })}
-                            </div>
-                        </ScrollArea>
+                </div>
+            </ScrollArea>
                     )}
-                </aside>
+        </aside>
 
                 <div className={cn(
                     "flex-1 flex-col bg-background", 
                     selectedConversationId ? "flex" : "hidden md:flex"
                 )}>
-                    {selectedConversation ? (
-                        <>
+            {selectedConversation ? (
+                <>
                             {isLoadingMessages ? (
                                 <div className="flex-1 flex items-center justify-center">
                                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                 </div>
                             ) : (
-                                <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-                                    <div className="space-y-4">
+                <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+                    <div className="space-y-4">
                                         {messages.length === 0 ? (
                                             <div className="text-center text-muted-foreground py-8">
                                                 <p>Aucun message pour le moment.</p>
@@ -658,28 +658,28 @@ function MessagesPageContent() {
                                                             ? 'bg-primary text-primary-foreground rounded-br-none' 
                                                             : 'bg-muted text-foreground rounded-bl-none'
                                                     )}>
-                                                        <p>{msg.text}</p>
+                                    <p>{msg.text}</p>
                                                         <p className="text-xs opacity-70 mt-1 text-right">
                                                             {msg.createdAt ? formatTime(msg.createdAt) : '...'}
                                                         </p>
-                                                    </div>
-                                                </div>
+                                </div>
+                            </div>
                                             ))
                                         )}
-                                    </div>
-                                </ScrollArea>
+                    </div>
+                </ScrollArea>
                             )}
 
-                            <footer className="p-4 bg-card border-t shrink-0">
-                                <form onSubmit={handleSendMessage}>
-                                    <div className="relative">
-                                        <Input 
-                                            placeholder="Écrire un message..." 
-                                            className="pr-12 h-12 rounded-full bg-muted border-none" 
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
+                <footer className="p-4 bg-card border-t shrink-0">
+                    <form onSubmit={handleSendMessage}>
+                        <div className="relative">
+                            <Input 
+                                placeholder="Écrire un message..." 
+                                className="pr-12 h-12 rounded-full bg-muted border-none" 
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
                                             disabled={isSending}
-                                        />
+                            />
                                         <Button 
                                             type="submit" 
                                             size="icon" 
@@ -689,26 +689,26 @@ function MessagesPageContent() {
                                             {isSending ? (
                                                 <Loader2 className="h-5 w-5 animate-spin" />
                                             ) : (
-                                                <Send className="h-5 w-5" />
+                                <Send className="h-5 w-5" />
                                             )}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </footer>
-                        </>
-                    ) : (
-                        <div className="flex-1 hidden md:flex items-center justify-center text-center text-muted-foreground">
-                            <div>
-                                <MessageCircle className="h-16 w-16 mx-auto mb-4" />
-                                <h2 className="text-xl font-semibold">Sélectionnez une conversation</h2>
-                                <p>Choisissez une conversation dans la liste pour afficher les messages.</p>
-                            </div>
+                            </Button>
                         </div>
-                    )}
+                    </form>
+                </footer>
+                </>
+            ) : (
+                <div className="flex-1 hidden md:flex items-center justify-center text-center text-muted-foreground">
+                    <div>
+                                <MessageCircle className="h-16 w-16 mx-auto mb-4" />
+                        <h2 className="text-xl font-semibold">Sélectionnez une conversation</h2>
+                        <p>Choisissez une conversation dans la liste pour afficher les messages.</p>
+                    </div>
                 </div>
-            </main>
+            )}
         </div>
-    );
+      </main>
+    </div>
+  );
 }
 
 export default function MessagesPage() {

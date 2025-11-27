@@ -124,12 +124,12 @@ export default function InsuranceProvidersPage() {
         });
       }
 
-      toast({
+    toast({
         title: "Demande enregistrée ! 🎉",
         description: "Nous vous contacterons dès qu'un partenariat sera établi avec une compagnie d'assurance.",
-      });
+    });
       
-      setIsDialogOpen(false);
+    setIsDialogOpen(false);
       setFormData({
         fullName: '',
         email: '',
@@ -246,12 +246,12 @@ export default function InsuranceProvidersPage() {
                 </div>
               </CardContent>
               <CardFooter className="pt-3 bg-muted/20 border-t">
-                <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm h-11"
+                    <Button
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm h-11"
                   onClick={() => openDialog(provider.name)}
-                >
+                    >
                   Manifester mon intérêt
-                </Button>
+                    </Button>
               </CardFooter>
             </Card>
           ))}

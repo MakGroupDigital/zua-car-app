@@ -125,12 +125,12 @@ export default function DrivingSchoolsPage() {
         });
       }
 
-      toast({
+    toast({
         title: "Demande enregistrée ! 🎉",
         description: "Nous vous contacterons dès qu'un partenariat sera établi avec une auto-école.",
-      });
+    });
       
-      setIsDialogOpen(false);
+    setIsDialogOpen(false);
       setFormData({
         fullName: '',
         email: '',
@@ -253,12 +253,12 @@ export default function DrivingSchoolsPage() {
                 </div>
               </CardContent>
               <CardFooter className="pt-3">
-                <Button
-                  className={`w-full ${school.color} hover:opacity-90 text-primary-foreground font-semibold shadow-sm h-11`}
+                    <Button
+                      className={`w-full ${school.color} hover:opacity-90 text-primary-foreground font-semibold shadow-sm h-11`}
                   onClick={() => openDialog(school)}
-                >
+                    >
                   Manifester mon intérêt
-                </Button>
+                    </Button>
               </CardFooter>
             </Card>
           ))}

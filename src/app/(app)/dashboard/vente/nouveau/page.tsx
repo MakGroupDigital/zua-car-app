@@ -350,14 +350,14 @@ export default function AddVehiclePage() {
                                         Choisir des fichiers
                                     </Button>
                                 </div>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
 
                                 {/* Image Previews */}
                                 {imagePreviews.length > 0 && (

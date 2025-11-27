@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import { Bell, Heart, Home, Search, Settings, SlidersHorizontal, Star, MessageCircle, HeartPulse, MapPin, ShoppingCart, Tag, Wrench, KeyRound, ShieldCheck, School, Loader2, X, Sparkles } from 'lucide-react';
+import { Bell, Heart, Home, Search, Settings, SlidersHorizontal, Star, MessageCircle, HeartPulse, MapPin, ShoppingCart, Tag, Wrench, KeyRound, ShieldCheck, School, Loader2, X, Sparkles, Shield, Users, Building2, Fuel } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,12 +30,16 @@ import { useToast } from '@/hooks/use-toast';
 
 
 const services = [
+  { name: 'Location', icon: KeyRound, href: '/vehicleRentalListings', color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-100 dark:bg-purple-900/50', textColor: 'text-purple-600 dark:text-purple-300' },
   { name: 'Achat', icon: ShoppingCart, href: '/vehicles', color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-100 dark:bg-blue-900/50', textColor: 'text-blue-600 dark:text-blue-300' },
   { name: 'Vente', icon: Tag, href: '/dashboard/vente', color: 'from-green-500 to-emerald-500', bgColor: 'bg-green-100 dark:bg-green-900/50', textColor: 'text-green-600 dark:text-green-300' },
   { name: 'Pièces', icon: Wrench, href: '/parts', color: 'from-yellow-500 to-amber-500', bgColor: 'bg-yellow-100 dark:bg-yellow-900/50', textColor: 'text-yellow-600 dark:text-yellow-300' },
-  { name: 'Location', icon: KeyRound, href: '/vehicleRentalListings', color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-100 dark:bg-purple-900/50', textColor: 'text-purple-600 dark:text-purple-300' },
+  { name: 'Sécurité automobile', icon: Shield, href: '/security', color: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100 dark:bg-orange-900/50', textColor: 'text-orange-600 dark:text-orange-300' },
   { name: 'Assurance', icon: ShieldCheck, href: '/insuranceProviders', color: 'from-red-500 to-rose-500', bgColor: 'bg-red-100 dark:bg-red-900/50', textColor: 'text-red-600 dark:text-red-300' },
   { name: 'Auto-école', icon: School, href: '/drivingSchools', color: 'from-indigo-500 to-violet-500', bgColor: 'bg-indigo-100 dark:bg-indigo-900/50', textColor: 'text-indigo-600 dark:text-indigo-300' },
+  { name: 'Conseiller automobile', icon: Users, href: '/advisors', color: 'from-teal-500 to-cyan-500', bgColor: 'bg-teal-100 dark:bg-teal-900/50', textColor: 'text-teal-600 dark:text-teal-300' },
+  { name: 'Garage', icon: Building2, href: '/garages', color: 'from-slate-500 to-gray-500', bgColor: 'bg-slate-100 dark:bg-slate-900/50', textColor: 'text-slate-600 dark:text-slate-300' },
+  { name: 'Stations', icon: Fuel, href: '/stations', color: 'from-amber-500 to-yellow-500', bgColor: 'bg-amber-100 dark:bg-amber-900/50', textColor: 'text-amber-600 dark:text-amber-300' },
 ];
 
 interface Vehicle {
@@ -455,7 +459,7 @@ export default function HomePage() {
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
             {services.map((service, index) => {
               const Icon = service.icon;
-              const isActive = index === 0; // First category is active by default
+              const isActive = index === 0; // Location is active by default (first category)
               return (
                 <Link 
                   href={service.href} 

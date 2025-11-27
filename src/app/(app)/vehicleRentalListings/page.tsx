@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -13,6 +13,7 @@ import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import { useSellerNames } from '@/hooks/use-seller-names';
 import {
   Dialog,
   DialogContent,
@@ -44,7 +45,7 @@ interface Rental {
 export default function VehicleRentalPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
   const [seatsFilter, setSeatsFilter] = useState<number>(0);
@@ -61,7 +62,15 @@ export default function VehicleRentalPage() {
 
   const { data: rentalsData, isLoading, error } = useCollection<Rental>(rentalsQuery);
 
-  const filteredVehicles = useMemo(() => {
+  // Get unique user IDs for fetching seller names
+  const userIds = useMemo(() => {
+    return (rentalsData || []).map(rental => rental.userId).filter(Boolean) as string[];
+  }, [rentalsData]);
+
+  // Fetch seller names
+  const { sellerNames } = useSellerNames(userIds);
+    
+    const filteredVehicles = useMemo(() => {
     let filtered = rentalsData || [];
 
     // Filter by search term
@@ -70,7 +79,7 @@ export default function VehicleRentalPage() {
         (rental.title || `${rental.make} ${rental.model}` || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (rental.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (rental.location || '').toLowerCase().includes(searchTerm.toLowerCase())
-      );
+        );
     }
 
     // Filter by price range
@@ -97,12 +106,12 @@ export default function VehicleRentalPage() {
     <div className="min-h-screen bg-muted">
       <header className="bg-background p-4 flex items-center justify-between gap-4 shadow-sm sticky top-0 z-20">
         <div className="flex items-center gap-4">
-          <Link href="/home" passHref>
+        <Link href="/home" passHref>
             <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-6 w-6" />
+                <ArrowLeft className="h-6 w-6" />
             </Button>
-          </Link>
-          <h1 className="text-xl font-bold">Véhicules de Location</h1>
+        </Link>
+        <h1 className="text-xl font-bold">Véhicules de Location</h1>
         </div>
         <Link href="/vehicleRentalListings/nouveau">
           <Button size="sm" className="gap-2">
@@ -115,15 +124,15 @@ export default function VehicleRentalPage() {
       <main className="p-4 space-y-4">
         {/* Search and Filter Bar */}
         <div className="sticky top-[73px] bg-muted z-10 py-2">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-grow">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                placeholder="Rechercher un véhicule..." 
+            <div className="flex items-center gap-3">
+              <div className="relative flex-grow">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="Rechercher un véhicule..." 
                 className="pl-12 pr-10 rounded-full h-12 bg-card border-none focus-visible:ring-primary shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               {searchTerm && (
                 <Button
                   variant="ghost"
@@ -132,7 +141,7 @@ export default function VehicleRentalPage() {
                   onClick={() => setSearchTerm('')}
                 >
                   <X className="h-4 w-4" />
-                </Button>
+              </Button>
               )}
             </div>
             
@@ -215,7 +224,7 @@ export default function VehicleRentalPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
+            </div>
         </div>
 
         {/* Loading State */}
@@ -249,7 +258,7 @@ export default function VehicleRentalPage() {
 
         {/* Vehicle List */}
         {!isLoading && !error && filteredVehicles.length > 0 && (
-          <div className="space-y-4 pb-4">
+        <div className="space-y-4 pb-4">
             {filteredVehicles.map((rental) => {
               const rentalImageUrl = rental.imageUrls?.[0] || rental.imageUrl;
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
@@ -257,33 +266,33 @@ export default function VehicleRentalPage() {
               
               return (
                 <Link key={rental.id} href={`/vehicleRentalListings/${rental.id}`} passHref>
-                  <Card className="overflow-hidden shadow-md border-none group hover:shadow-lg transition-shadow">
-                    <CardContent className="p-3 flex gap-4 items-center">
-                      <div className="relative w-1/3">
+                  <Card className="overflow-hidden shadow-md border-none group hover:shadow-lg transition-shadow rounded-2xl">
+                      <CardContent className="p-3 flex gap-4 items-center">
+                        <div className="relative w-2/5 min-w-[140px]">
                         {rentalImageUrl ? (
                           <Image
                             src={rentalImageUrl}
                             alt={displayTitle}
-                            width={120}
-                            height={90}
-                            className="rounded-lg w-full aspect-[4/3] object-cover"
+                            width={160}
+                            height={120}
+                            className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : placeholderImage ? (
-                          <Image
+                            <Image
                             src={placeholderImage.imageUrl}
                             alt={displayTitle}
-                            width={120}
-                            height={90}
-                            className="rounded-lg w-full aspect-[4/3] object-cover"
+                              width={160}
+                              height={120}
+                              className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
                             data-ai-hint={placeholderImage.imageHint}
-                          />
+                            />
                         ) : (
                           <div className="w-full aspect-[4/3] bg-muted rounded-lg flex items-center justify-center">
                             <Car className="h-8 w-8 text-muted-foreground" />
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-grow w-2/3">
+                          )}
+                        </div>
+                        <div className="flex-grow w-3/5">
                         <h3 className="font-bold text-lg truncate">{displayTitle}</h3>
                         {rental.location && (
                           <p className="text-xs text-muted-foreground truncate mt-1">
@@ -296,21 +305,32 @@ export default function VehicleRentalPage() {
                             <span>{rental.seats} places</span>
                           </div>
                         )}
-                        <div className="flex items-center justify-between mt-3">
+                        
+                        {/* Seller name */}
+                        {rental.userId && sellerNames[rental.userId] && (
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <User className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground truncate">
+                              {sellerNames[rental.userId].name}
+                            </span>
+                          </div>
+                        )}
+                        
+                          <div className="flex items-center justify-between mt-3">
                           <p className="font-extrabold text-lg text-primary">
                             ${rental.pricePerDay?.toLocaleString()}/jour
                           </p>
                           <Button size="sm" className="bg-primary/90" onClick={(e) => e.preventDefault()}>
                             Louer
                           </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
                 </Link>
               );
             })}
-          </div>
+            </div>
         )}
       </main>
     </div>

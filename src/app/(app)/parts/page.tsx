@@ -13,6 +13,8 @@ import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import { useSellerNames } from '@/hooks/use-seller-names';
+import { User } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -62,6 +64,14 @@ export default function PartsPage() {
 
   const { data: partsData, isLoading, error } = useCollection<Part>(partsQuery);
 
+  // Get unique user IDs for fetching seller names
+  const userIds = useMemo(() => {
+    return (partsData || []).map(part => part.userId).filter(Boolean) as string[];
+  }, [partsData]);
+
+  // Fetch seller names
+  const { sellerNames } = useSellerNames(userIds);
+
   const parts = useMemo(() => {
     let filteredParts = partsData || [];
 
@@ -103,12 +113,12 @@ export default function PartsPage() {
     <div className="min-h-screen bg-muted">
       <header className="bg-background p-4 flex items-center justify-between gap-4 shadow-sm sticky top-0 z-20">
         <div className="flex items-center gap-4">
-          <Link href="/home" passHref>
+        <Link href="/home" passHref>
             <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-6 w-6" />
+                <ArrowLeft className="h-6 w-6" />
             </Button>
-          </Link>
-          <h1 className="text-xl font-bold">Pièces Détachées</h1>
+        </Link>
+        <h1 className="text-xl font-bold">Pièces Détachées</h1>
         </div>
         <Link href="/parts/nouveau">
           <Button size="sm" className="gap-2">
@@ -121,15 +131,15 @@ export default function PartsPage() {
       <main className="p-4 space-y-4">
         {/* Search and Filter Bar */}
         <div className="sticky top-[73px] bg-muted z-10 py-2">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-grow">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                placeholder="Rechercher une pièce..." 
+            <div className="flex items-center gap-3">
+              <div className="relative flex-grow">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="Rechercher une pièce..." 
                 className="pl-12 pr-10 rounded-full h-12 bg-card border-none focus-visible:ring-primary shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               {searchTerm && (
                 <Button
                   variant="ghost"
@@ -138,10 +148,10 @@ export default function PartsPage() {
                   onClick={() => setSearchTerm('')}
                 >
                   <X className="h-4 w-4" />
-                </Button>
+              </Button>
               )}
             </div>
-            
+
             <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
@@ -224,26 +234,26 @@ export default function PartsPage() {
 
           {/* Categories */}
           <div className="flex gap-2 overflow-x-auto mt-4 pb-2 scrollbar-hide">
-            <Button 
-              variant={!selectedCategory ? 'default' : 'outline'} 
-              size="sm" 
+                <Button 
+                  variant={!selectedCategory ? 'default' : 'outline'} 
+                  size="sm" 
               className="rounded-full whitespace-nowrap"
-              onClick={() => setSelectedCategory(null)}
-            >
-              Tout
-            </Button>
-            {categories.map((category) => (
-              <Button 
-                key={category} 
-                variant={selectedCategory === category ? 'default' : 'outline'} 
-                size="sm" 
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Tout
+                </Button>
+                {categories.map((category) => (
+                    <Button 
+                      key={category} 
+                      variant={selectedCategory === category ? 'default' : 'outline'} 
+                      size="sm" 
                 className="rounded-full whitespace-nowrap"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
+                      onClick={() => setSelectedCategory(category)}
+                    >
+                        {category}
+                    </Button>
+                ))}
+            </div>
         </div>
 
         {/* Loading State */}
@@ -277,31 +287,31 @@ export default function PartsPage() {
 
         {/* Parts Grid */}
         {!isLoading && !error && parts.length > 0 && (
-          <div className="grid grid-cols-2 gap-4">
-            {parts.map((part) => {
+        <div className="grid grid-cols-2 gap-4">
+          {parts.map((part) => {
               const partImageUrl = part.imageUrls?.[0] || part.imageUrl;
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'part-oil-filter');
               
-              return (
-                <Link key={part.id} href={`/parts/${part.id}`} passHref>
+            return (
+              <Link key={part.id} href={`/parts/${part.id}`} passHref>
                   <Card className="rounded-2xl overflow-hidden group shadow-md border-none h-full hover:shadow-lg transition-shadow">
-                    <CardContent className="p-3 flex flex-col h-full">
-                      <div className="relative bg-muted rounded-lg aspect-[4/3]">
+                  <CardContent className="p-3 flex flex-col h-full">
+                    <div className="relative bg-muted rounded-lg aspect-[4/3] overflow-hidden">
                         {partImageUrl ? (
                           <Image
                             src={partImageUrl}
                             alt={part.title || part.name || 'Pièce'}
                             fill
-                            className="object-cover rounded-lg"
+                            className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : placeholderImage ? (
-                          <Image
+                        <Image
                             src={placeholderImage.imageUrl}
                             alt={part.title || part.name || 'Pièce'}
-                            fill
-                            className="object-contain p-2"
+                          fill
+                          className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                             data-ai-hint={placeholderImage.imageHint}
-                          />
+                        />
                         ) : (
                           <div className="flex items-center justify-center h-full">
                             <Wrench className="h-8 w-8 text-muted-foreground" />
@@ -316,25 +326,36 @@ export default function PartsPage() {
                           )}>
                             {part.condition === 'Neuf' ? 'Neuf' : 'Occasion'}
                           </span>
-                        )}
-                      </div>
-                      <div className="pt-3 flex flex-col flex-grow">
-                        <h3 className="font-bold text-sm truncate">{part.title || part.name}</h3>
-                        <p className="text-xs text-muted-foreground truncate">{part.compatibility}</p>
-                        <div className="flex-grow" />
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="font-bold text-md text-primary">${part.price?.toLocaleString()}</p>
+                      )}
+                    </div>
+                    <div className="pt-3 flex flex-col flex-grow">
+                        <h3 className="font-bold text-md truncate">{part.title || part.name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{part.compatibility}</p>
+                      
+                      {/* Seller name */}
+                      {part.userId && sellerNames[part.userId] && (
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground truncate">
+                            {sellerNames[part.userId].name}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex-grow" />
+                      <div className="flex items-center justify-between mt-2">
+                          <p className="font-bold text-lg text-primary">${part.price?.toLocaleString()}</p>
                           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                             {part.category}
                           </span>
-                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
         )}
       </main>
     </div>

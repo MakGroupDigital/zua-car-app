@@ -83,27 +83,27 @@ export function BottomNav() {
           {/* Items de droite */}
           <div className="flex items-center justify-around flex-1">
             {rightItems.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-              return (
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          return (
                 <Link href={item.href} key={item.label} passHref className="flex-1">
-                  <Button
-                    variant="ghost"
-                    className={cn(
+              <Button
+                variant="ghost"
+                className={cn(
                       'flex flex-col items-center h-auto p-2 w-full',
-                      isActive ? 'text-primary-foreground' : 'text-primary-foreground/70',
+                  isActive ? 'text-primary-foreground' : 'text-primary-foreground/70',
                       'hover:bg-primary/80 hover:text-primary-foreground transition-all duration-300'
-                    )}
-                  >
-                    <Icon className="h-6 w-6" />
-                    <span className={cn('text-xs mt-1', isActive ? 'font-semibold' : 'font-normal')}>{item.label}</span>
-                  </Button>
-                </Link>
-              );
-            })}
+                )}
+              >
+                <Icon className="h-6 w-6" />
+                <span className={cn('text-xs mt-1', isActive ? 'font-semibold' : 'font-normal')}>{item.label}</span>
+              </Button>
+            </Link>
+          );
+        })}
           </div>
-        </div>
-      </footer>
+      </div>
+    </footer>
 
       {/* Dialog pour choisir le type d'offre */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

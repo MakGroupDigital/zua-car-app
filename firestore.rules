@@ -181,5 +181,90 @@ service cloud.firestore {
       // Suppression uniquement par le propriétaire
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
+
+    // --- Collection Security Vehicles (Véhicules avec traceur GPS) ---
+    match /securityVehicles/{vehicleId} {
+      // Lecture d'un document spécifique uniquement par le propriétaire
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Liste : permet la lecture si l'utilisateur est connecté
+      // Le code filtre par userId dans la requête avec where('userId', '==', user.uid)
+      allow list: if isSignedIn();
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'make', 'model', 'trackerNumber', 'licensePlate', 'createdAt']);
+      
+      // Mise à jour uniquement par le propriétaire
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // --- Collection Security Payments (Paiements GPS) ---
+    match /securityPayments/{paymentId} {
+      // Lecture uniquement par le propriétaire
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Liste : permet la lecture si l'utilisateur est connecté
+      allow list: if isSignedIn();
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid;
+      
+      // Mise à jour uniquement par le propriétaire ou le système (via API)
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Pas de suppression
+      allow delete: if false;
+    }
+
+    // --- Collection Advisors (Conseillers Automobiles) ---
+    match /advisors/{advisorId} {
+      // Lecture publique pour tous
+      allow get, list: if true;
+      
+      // Création par utilisateurs authentifiés (pour les conseillers qui s'inscrivent)
+      allow create: if isSignedIn();
+      
+      // Mise à jour uniquement par le propriétaire (le conseiller lui-même)
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // --- Collection Garages ---
+    match /garages/{garageId} {
+      // Lecture publique pour tous
+      allow get, list: if true;
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn();
+      
+      // Mise à jour uniquement par le propriétaire
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // --- Collection Stations (Stations-service) ---
+    match /stations/{stationId} {
+      // Lecture publique pour tous
+      allow get, list: if true;
+      
+      // Création par utilisateurs authentifiés
+      allow create: if isSignedIn();
+      
+      // Mise à jour uniquement par le propriétaire
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
   }
 }

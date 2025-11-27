@@ -58,8 +58,8 @@ interface RenterInfo {
 }
 
 export default function RentalDetailsPage() {
-  const router = useRouter();
-  const params = useParams();
+    const router = useRouter();
+    const params = useParams();
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -272,13 +272,13 @@ export default function RentalDetailsPage() {
   }
 
   if (error || !rental) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center bg-muted">
+        return (
+            <div className="flex h-screen flex-col items-center justify-center bg-muted">
         <p className="text-muted-foreground">Offre de location non trouvée.</p>
-        <Button onClick={() => router.back()} className="mt-4">Retour</Button>
-      </div>
+                <Button onClick={() => router.back()} className="mt-4">Retour</Button>
+            </div>
     );
-  }
+    }
 
   const rentalImages = rental.imageUrls || (rental.imageUrl ? [rental.imageUrl] : []);
   const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
@@ -286,10 +286,10 @@ export default function RentalDetailsPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-background/80 backdrop-blur-sm p-4 flex items-center justify-between sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
+        <header className="bg-background/80 backdrop-blur-sm p-4 flex items-center justify-between sticky top-0 z-10">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-6 w-6" />
+            </Button>
         <h1 className="text-xl font-bold truncate flex-1 mx-4 text-center">
           {displayTitle}
         </h1>
@@ -308,20 +308,20 @@ export default function RentalDetailsPage() {
             )}
           </Button>
           <Button variant="ghost" size="icon" onClick={handleShare}>
-            <Share2 className="h-6 w-6" />
-          </Button>
+                <Share2 className="h-6 w-6" />
+            </Button>
         </div>
-      </header>
+        </header>
 
       <main className="pb-28">
         {/* Image Carousel */}
-        <Carousel className="w-full bg-card">
+         <Carousel className="w-full bg-card">
           <CarouselContent>
             {rentalImages.length > 0 ? (
               rentalImages.map((imgUrl, index) => (
                 <CarouselItem key={index}>
                   <div className="relative w-full h-[35vh]">
-                    <Image
+                     <Image
                       src={imgUrl}
                       alt={`${displayTitle} - Image ${index + 1}`}
                       fill
@@ -345,59 +345,59 @@ export default function RentalDetailsPage() {
               </CarouselItem>
             ) : null}
           </CarouselContent>
-          {rentalImages.length > 1 && (
-            <>
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
-            </>
-          )}
+            {rentalImages.length > 1 && (
+                <>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+                </>
+            )}
         </Carousel>
 
         <div className="p-4 space-y-4">
           {/* Main Info Card */}
-          <Card className="shadow-lg">
-            <CardHeader>
+            <Card className="shadow-lg">
+                <CardHeader>
               <CardTitle className="text-2xl font-bold">{displayTitle}</CardTitle>
               {rental.location && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                   <MapPin className="h-4 w-4" />
                   <span>{rental.location}</span>
-                </div>
+                    </div>
               )}
-            </CardHeader>
-            <CardContent>
+                </CardHeader>
+                 <CardContent>
               <p className="text-muted-foreground">{rental.description || 'Aucune description disponible.'}</p>
-            </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
 
           {/* Pricing Card */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle>Tarifs de Location</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+             <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle>Tarifs de Location</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
               {rental.pricePerHour && (
-                <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-primary"/>
-                    <span className="font-medium">Par Heure</span>
-                  </div>
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <Clock className="h-6 w-6 text-primary"/>
+                            <span className="font-medium">Par Heure</span>
+                        </div>
                   <span className="font-bold text-lg">${rental.pricePerHour.toFixed(2)}</span>
-                </div>
+                    </div>
               )}
-              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Sun className="h-6 w-6 text-primary"/>
-                  <span className="font-medium">Par Jour</span>
-                </div>
+                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <Sun className="h-6 w-6 text-primary"/>
+                            <span className="font-medium">Par Jour</span>
+                        </div>
                 <span className="font-bold text-lg">${rental.pricePerDay?.toFixed(2)}</span>
-              </div>
+                    </div>
               {rental.pricePerWeek && (
-                <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-6 w-6 text-primary"/>
-                    <span className="font-medium">Par Semaine</span>
-                  </div>
+                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <Calendar className="h-6 w-6 text-primary"/>
+                            <span className="font-medium">Par Semaine</span>
+                        </div>
                   <span className="font-bold text-lg">${rental.pricePerWeek.toFixed(2)}</span>
                 </div>
               )}
@@ -405,17 +405,17 @@ export default function RentalDetailsPage() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                   <span className="font-medium">Places :</span>
                   <span>{rental.seats} places</span>
-                </div>
+                    </div>
               )}
-            </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
 
           {/* Renter Card */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle>Loueur</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle>Loueur</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
               {renterLoading ? (
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-muted animate-pulse" />
@@ -425,25 +425,25 @@ export default function RentalDetailsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-12 h-12">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="w-12 h-12">
                     {renter?.photoURL && <AvatarImage src={renter.photoURL} alt={renter.name} />}
                     <AvatarFallback>{getInitials(renter?.name || 'L')}</AvatarFallback>
-                  </Avatar>
-                  <div>
+                        </Avatar>
+                        <div>
                     <p className="font-bold flex items-center gap-2">
                       {renter?.name} 
                       {renter?.isVerified && <BadgeCheck className="h-5 w-5 text-blue-500" />}
                     </p>
                     <p className="text-xs text-muted-foreground">Loueur</p>
-                  </div>
-                </div>
+                        </div>
+                    </div>
               )}
               <Button variant="outline" size="icon" onClick={handleContactRenter}>
                 <MessageSquare className="h-5 w-5" />
               </Button>
-            </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
         </div>
       </main>
 
@@ -460,9 +460,9 @@ export default function RentalDetailsPage() {
             Contacter
           </Button>
           <Button size="lg" className="flex-1" onClick={handleReserve}>
-            <Calendar className="mr-2 h-5 w-5" />
-            Réserver
-          </Button>
+                <Calendar className="mr-2 h-5 w-5" />
+                Réserver
+            </Button>
         </div>
       </footer>
 

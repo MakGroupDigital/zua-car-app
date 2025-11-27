@@ -204,3 +204,46 @@
     display: none;
   }
 }
+
+/* Custom Leaflet marker styles */
+.custom-user-marker,
+.custom-garage-marker,
+.custom-station-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px !important;
+}
+
+/* Leaflet controls styling */
+.leaflet-control-zoom a {
+  background-color: hsl(210, 100%, 20%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: hsl(198, 100%, 49%) !important;
+}
+
+.leaflet-control-attribution {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+}
+
+/* Custom Leaflet marker styles */
+.custom-user-marker,
+.custom-garage-marker {
+  background: transparent !important;
+  border: none !important;
+}

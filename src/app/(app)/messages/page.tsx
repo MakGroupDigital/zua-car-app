@@ -287,15 +287,17 @@ function MessagesPageContent() {
                             
                             // Only create notification if message is from someone else
                             if (msgData.senderId !== user.uid) {
-                                const otherParticipant = convoData.participants.find(p => p.id !== user.uid);
-                                if (otherParticipant) {
+                                // Get sender info for notification
+                                const sender = convoData.participants.find(p => p.id === msgData.senderId);
+                                if (sender) {
+                                    // Create notification for the current user (recipient)
                                     await createMessageNotification(
                                         firestore,
-                                        user.uid,
-                                        otherParticipant.name,
+                                        user.uid, // Current user is the recipient
+                                        sender.name,
                                         msgData.text,
                                         convoId,
-                                        otherParticipant.photoURL
+                                        sender.photoURL
                                     );
                                 }
                             }

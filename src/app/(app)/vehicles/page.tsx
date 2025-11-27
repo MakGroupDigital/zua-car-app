@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, Heart, X, Loader2, User } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, X, Loader2, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -380,19 +380,19 @@ export default function VehiclesPage() {
             </div>
         </div>
 
-        {/* Vehicle Grid */}
-        <div className="grid grid-cols-2 gap-4 pb-4">
+        {/* Vehicle List */}
+        <div className="space-y-4 pb-4">
           {isLoading && (
-            <div className="col-span-2 flex items-center justify-center py-10">
+            <div className="flex items-center justify-center py-10">
               <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
               <span>Chargement…</span>
             </div>
           )}
           {error && (
-            <div className="col-span-2 text-center text-red-500 py-10">Erreur de chargement…</div>
+            <div className="text-center text-red-500 py-10">Erreur de chargement…</div>
           )}
           {!isLoading && !error && vehicles.length === 0 && (
-            <div className="col-span-2 text-center py-16">
+            <div className="text-center py-16">
                 <p className="text-muted-foreground mb-2">Aucun véhicule ne correspond à votre recherche.</p>
                 <Button variant="outline" onClick={resetFilters}>
                   Réinitialiser les filtres
@@ -405,38 +405,35 @@ export default function VehiclesPage() {
               
               return (
                 <Link key={car.id} href={`/vehicles/${car.id}`} passHref>
-                    <Card className="rounded-2xl overflow-hidden group shadow-md border-none h-full hover:shadow-lg transition-all">
-                      <CardContent className="p-3 flex flex-col h-full">
-                        <div className="relative">
-                          <Button variant="ghost" size="icon" className="absolute top-2 left-2 h-7 w-7 rounded-full bg-black/30 text-white hover:bg-black/50 hover:text-red-500 z-10">
-                            <Heart className="h-4 w-4" />
-                          </Button>
+                    <Card className="shadow-md cursor-pointer hover:shadow-lg transition-shadow border-none rounded-2xl">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className="relative w-1/3 min-w-[120px]">
                           {(() => {
                             let url = car.imageUrl;
                             if (!url && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) url = car.imageUrls[0];
                             if (url) {
                               return (
-                                <Image src={url} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300" />
+                                <Image src={url} alt={car.model || car.title || 'Véhicule'} width={120} height={90} className="rounded-lg w-full aspect-[4/3] object-cover" />
                               );
                             } else if (car.imageId) {
                               const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
                               if (carImage) {
                                 return (
-                                  <Image src={carImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={carImage.imageHint} />
+                                  <Image src={carImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={120} height={90} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={carImage.imageHint} />
                                 );
                               }
                             }
                             const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
                             return placeholderImage ? (
-                              <Image src={placeholderImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={300} height={200} className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={placeholderImage.imageHint} />
+                              <Image src={placeholderImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={120} height={90} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={placeholderImage.imageHint} />
                             ) : (
-                              <div className="flex items-center justify-center w-full h-[150px] bg-muted text-xs text-muted-foreground">Aucune image</div>
+                              <div className="flex items-center justify-center w-full aspect-[4/3] bg-muted rounded-lg text-xs text-muted-foreground">Aucune image</div>
                             );
                           })()}
                         </div>
-                        <div className="pt-3 flex flex-col flex-grow">
-                          <h3 className="font-bold text-md truncate">{car.title || car.model || 'Véhicule'}</h3>
-                          <p className="text-xs text-muted-foreground truncate">
+                        <div className="flex-grow">
+                          <h3 className="font-bold text-lg truncate">{car.title || car.model || 'Véhicule'}</h3>
+                          <p className="text-sm text-muted-foreground truncate">
                             {car.make || car.brand} {car.model} {car.year && `- ${car.year}`}
                           </p>
                           
@@ -450,14 +447,13 @@ export default function VehiclesPage() {
                             </div>
                           )}
                           
-                          <div className="flex-grow" />
                           <div className="flex items-center justify-between mt-2">
-                             <p className="font-bold text-lg text-primary">${car.price?.toLocaleString() || '0'}</p>
+                            <p className="text-primary font-semibold text-lg">${car.price?.toLocaleString() || '0'}</p>
                             {vehicleRating.count > 0 && (
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
                                 <span className="text-xs font-medium text-muted-foreground">{rating.toFixed(1)}</span>
-                            </div>
+                              </div>
                             )}
                           </div>
                         </div>

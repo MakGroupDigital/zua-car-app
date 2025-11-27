@@ -121,29 +121,32 @@ export default function PartsPage() {
         <h1 className="text-xl font-bold">Pièces Détachées</h1>
         </div>
         <Link href="/parts/nouveau">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+          <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
             {(() => {
               const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
               if (logoImage) {
                 return (
                   <>
-                    <Image 
-                      src={logoImage.imageUrl} 
-                      alt="Logo" 
-                      fill 
-                      className="object-cover"
-                      data-ai-hint={logoImage.imageHint}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <Plus className="h-5 w-5 text-white" />
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                      <Image 
+                        src={logoImage.imageUrl} 
+                        alt="Logo" 
+                        fill 
+                        className="object-cover"
+                        data-ai-hint={logoImage.imageHint}
+                      />
                     </div>
+                    <Plus className="h-5 w-5 text-primary" />
                   </>
                 );
               }
               return (
-                <div className="w-full h-full bg-primary flex items-center justify-center">
-                  <Plus className="h-5 w-5 text-white" />
-                </div>
+                <>
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">Z</span>
+                  </div>
+                  <Plus className="h-5 w-5 text-primary" />
+                </>
               );
             })()}
           </div>

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';

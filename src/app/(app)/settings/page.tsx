@@ -8,12 +8,15 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Bell, Moon, Globe, Shield, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function SettingsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme, mounted } = useTheme();
   const [language, setLanguage] = useState('fr');
+  
+  const darkMode = theme === 'dark';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
@@ -76,8 +79,9 @@ export default function SettingsPage() {
               <Switch
                 id="dark-mode"
                 checked={darkMode}
-                onCheckedChange={setDarkMode}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                 className="data-[state=checked]:bg-primary"
+                disabled={!mounted}
               />
             </div>
           </CardContent>

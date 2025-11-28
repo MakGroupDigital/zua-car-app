@@ -130,29 +130,36 @@ export function useLocation(): UseLocationReturn {
       return;
     }
 
-    // Check if permission was previously granted/denied
-    navigator.permissions?.query({ name: 'geolocation' }).then((result) => {
-      if (result.state === 'granted') {
-        setPermissionStatus('granted');
-        fetchLocation();
-      } else if (result.state === 'denied') {
-        setPermissionStatus('denied');
-      } else {
-        setPermissionStatus('prompt');
-      }
-
-      result.addEventListener('change', () => {
+    // Try to check permission status using Permissions API
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
         if (result.state === 'granted') {
           setPermissionStatus('granted');
           fetchLocation();
         } else if (result.state === 'denied') {
           setPermissionStatus('denied');
+        } else {
+          setPermissionStatus('prompt');
         }
+
+        result.addEventListener('change', () => {
+          if (result.state === 'granted') {
+            setPermissionStatus('granted');
+            fetchLocation();
+          } else if (result.state === 'denied') {
+            setPermissionStatus('denied');
+          } else {
+            setPermissionStatus('prompt');
+          }
+        });
+      }).catch(() => {
+        // Fallback if permissions API is not available or fails
+        setPermissionStatus('prompt');
       });
-    }).catch(() => {
-      // Fallback if permissions API is not available
+    } else {
+      // Fallback: try to get location directly to check permission
       setPermissionStatus('prompt');
-    });
+    }
   }, [fetchLocation]);
 
   // Request location permission
@@ -162,8 +169,44 @@ export function useLocation(): UseLocationReturn {
       return;
     }
 
-    fetchLocation();
-  }, [fetchLocation]);
+    setIsLoading(true);
+    setError(null);
+
+    // Try to get location - this will trigger permission prompt if needed
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const locationData = await reverseGeocode(latitude, longitude);
+          setLocation(locationData);
+          setPermissionStatus('granted');
+        } catch (err: any) {
+          setError(err.message || 'Erreur lors de la récupération de la localisation');
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      (err) => {
+        setIsLoading(false);
+        if (err.code === 1) {
+          // Permission denied
+          setPermissionStatus('denied');
+          setError('Autorisation de localisation refusée. Veuillez l\'activer dans les paramètres de votre navigateur.');
+        } else if (err.code === 2) {
+          setError('Position non disponible');
+          setPermissionStatus('denied');
+        } else {
+          setError('Erreur de géolocalisation');
+          setPermissionStatus('prompt');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0, // Always get fresh location
+      }
+    );
+  }, [reverseGeocode]);
 
   return {
     location,

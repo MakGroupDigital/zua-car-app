@@ -6,6 +6,26 @@ import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
+import { useTheme } from '@/hooks/use-theme';
+import { useEffect } from 'react';
+
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const { theme, mounted } = useTheme();
+
+  useEffect(() => {
+    // Apply theme on mount
+    if (mounted) {
+      const root = document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    }
+  }, [theme, mounted]);
+
+  return <>{children}</>;
+}
 
 export default function RootLayout({
   children,
@@ -37,11 +57,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased", "min-h-screen bg-background font-sans")}>
-        <RegisterServiceWorker />
-        <FirebaseClientProvider>
-          {children}
-        </FirebaseClientProvider>
-        <Toaster />
+        <ThemeProvider>
+          <RegisterServiceWorker />
+          <FirebaseClientProvider>
+            {children}
+          </FirebaseClientProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -538,7 +538,7 @@ export default function HomePage() {
                 const isToggling = togglingFavorite === vehicle.id;
                 const vehicleRating = vehicleRatings[vehicle.id] || { average: 0, count: 0 };
                 const rating = vehicleRating.average || 0;
-                const sellerInfo = sellerNames[vehicle.userId] || { name: 'Vendeur' };
+                const sellerInfo = vehicle.userId ? (sellerNames[vehicle.userId] || { name: 'Vendeur' }) : { name: 'Vendeur' };
                 
               return (
                   <Link 

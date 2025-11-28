@@ -455,12 +455,28 @@ function MessagesPageContent() {
                     user.uid // Current user ID - to prevent showing notification to sender
                 );
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error sending message:', err);
+            console.error('Error details:', {
+                code: err?.code,
+                message: err?.message,
+                stack: err?.stack,
+                conversationId: selectedConversationId,
+                userId: user?.uid,
+            });
+            
+            let errorMessage = 'Impossible d\'envoyer le message';
+            if (err?.code === 'permission-denied') {
+                errorMessage = 'Permission refusée. Vérifiez que vous êtes bien participant de cette conversation.';
+            } else if (err?.message) {
+                errorMessage = `Erreur: ${err.message}`;
+            }
+            
             toast({
                 variant: 'destructive',
                 title: 'Erreur',
-                description: 'Impossible d\'envoyer le message',
+                description: errorMessage,
+                duration: 5000,
             });
             setNewMessage(messageText);
         } finally {

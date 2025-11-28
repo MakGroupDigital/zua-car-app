@@ -6,17 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Bell, Moon, Globe, Shield, Loader2 } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Shield, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
-import { useLanguageContext } from '@/contexts/language-context';
-import type { Language } from '@/lib/i18n/translations';
 
 export default function SettingsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
   const { theme, setTheme, mounted: themeMounted } = useTheme();
-  const { language, setLanguage, mounted: langMounted } = useLanguageContext();
   
   const darkMode = theme === 'dark';
 
@@ -85,34 +82,6 @@ export default function SettingsPage() {
                 className="data-[state=checked]:bg-primary"
                 disabled={!themeMounted}
               />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Langue */}
-        <Card className="shadow-lg border-2 border-primary/20">
-          <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <Globe className="h-5 w-5" />
-              Langue
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-medium">Langue de l'application</Label>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as Language)}
-                  disabled={!langMounted}
-                  className="px-3 py-2 rounded-md border border-primary/20 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
-                  <option value="sw">Kiswahili</option>
-                  <option value="ln">Lingala</option>
-                </select>
-              </div>
             </div>
           </CardContent>
         </Card>

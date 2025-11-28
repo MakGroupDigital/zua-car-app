@@ -15,8 +15,6 @@ import { doc, collection, query, orderBy, limit, getDoc, updateDoc, setDoc, arra
 import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
 import { useLocation } from '@/hooks/use-location';
 import { cn } from '@/lib/utils';
-import { useLanguageContext } from '@/contexts/language-context';
-import { translate } from '@/lib/i18n/translations';
 import {
   Dialog,
   DialogContent,
@@ -60,7 +58,6 @@ interface Vehicle {
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { language } = useLanguageContext();
   const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
@@ -298,7 +295,7 @@ export default function HomePage() {
           )}
           <div className="flex items-center gap-4 text-muted-foreground">
             <Loader2 className="w-8 h-8 animate-spin" />
-            <p className="text-lg font-semibold">{translate('common.loading', language)}</p>
+            <p className="text-lg font-semibold">Chargement...</p>
           </div>
         </div>
       </div>
@@ -346,14 +343,14 @@ export default function HomePage() {
                   if (permissionStatus === 'denied') {
                     toast({
                       variant: 'destructive',
-                      title: translate('home.location.denied', language),
-                      description: translate('home.location.denied.description', language),
+                      title: 'Localisation refusée',
+                      description: 'Veuillez autoriser l\'accès à votre localisation dans les paramètres de votre navigateur',
                       duration: 3000,
                     });
                   } else {
                     toast({
-                      title: translate('home.location.request', language),
-                      description: translate('home.location.request.description', language),
+                      title: 'Demande de localisation',
+                      description: 'Veuillez autoriser l\'accès à votre localisation',
                       duration: 3000,
                     });
                   }
@@ -374,7 +371,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex flex-col items-start min-w-0">
                   <span className="font-medium text-sm text-primary/70">
-                    {isLocationLoading ? translate('home.location.loading', language) : translate('home.location.share', language)}
+                    {isLocationLoading ? 'Chargement...' : 'Partager votre localisation'}
                   </span>
                 </div>
               </button>
@@ -418,7 +415,7 @@ export default function HomePage() {
           <div className="relative flex-grow group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60 group-focus-within:text-primary transition-colors duration-300 z-10" />
             <Input 
-              placeholder={translate('home.search.placeholder', language)} 
+              placeholder="Rechercher..." 
               className="pl-12 pr-4 rounded-full h-12 bg-gradient-to-r from-card to-primary/5 border-2 border-primary/20 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 shadow-md hover:shadow-lg transition-all duration-300"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -450,7 +447,7 @@ export default function HomePage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
           <div className="flex items-center gap-4 mb-4">
             <h2 className="text-lg font-bold relative bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {translate('home.categories', language)}
+              Catégories
               <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent" />
             </h2>
           </div>
@@ -496,13 +493,13 @@ export default function HomePage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {translate('home.popular.cars', language)}
+              Voitures Populaires
             </h2>
             <Link 
               href="/vehicles" 
               className="text-sm font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline transition-all duration-300 hover:scale-105"
             >
-              {translate('home.see.all', language)} →
+              Voir tout →
             </Link>
           </div>
           
@@ -510,13 +507,13 @@ export default function HomePage() {
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="text-primary/70 font-medium">{translate('common.loading', language)}</span>
+                <span className="text-primary/70 font-medium">Chargement des véhicules...</span>
               </div>
             </div>
           ) : filteredCars.length === 0 ? (
             <div className="text-center py-12 bg-gradient-to-br from-card to-primary/10 backdrop-blur-sm rounded-2xl border-2 border-dashed border-primary/30">
               <ShoppingCart className="h-12 w-12 text-primary/50 mx-auto mb-4 opacity-50" />
-              <p className="text-primary/70 mb-2 font-medium">{translate('home.no.vehicles', language)}</p>
+              <p className="text-primary/70 mb-2 font-medium">Aucun véhicule disponible pour le moment.</p>
               <Link href="/dashboard/vente/nouveau" className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline font-medium inline-flex items-center gap-1 group">
                 Soyez le premier à publier une annonce !
                 <span className="group-hover:translate-x-1 transition-transform text-accent">→</span>

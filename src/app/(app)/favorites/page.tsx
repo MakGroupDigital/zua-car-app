@@ -10,8 +10,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, getDoc, updateDoc, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useLanguageContext } from '@/contexts/language-context';
-import { translate } from '@/lib/i18n/translations';
 
 interface FavoriteItem {
   id: string;
@@ -36,7 +34,6 @@ export default function FavoritesPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { language } = useLanguageContext();
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -150,7 +147,7 @@ export default function FavoritesPage() {
         console.error('Error fetching favorites:', err);
         toast({
           variant: 'destructive',
-          title: translate('common.error', language),
+          title: 'Erreur',
           description: 'Impossible de charger vos favoris',
           duration: 3000,
         });
@@ -162,7 +159,7 @@ export default function FavoritesPage() {
     if (!isUserLoading) {
       fetchFavorites();
     }
-  }, [user, isUserLoading, firestore, toast, language]);
+  }, [user, isUserLoading, firestore, toast]);
 
   const removeFavorite = async (item: FavoriteItem) => {
     if (!user || !firestore) return;
@@ -189,7 +186,7 @@ export default function FavoritesPage() {
       setFavorites(favorites.filter(f => f.id !== item.id));
 
       toast({
-        title: translate('favorites.remove', language),
+        title: 'Retiré des favoris',
         description: 'L\'offre a été retirée de vos favoris',
         duration: 2000,
       });
@@ -197,7 +194,7 @@ export default function FavoritesPage() {
       console.error('Error removing favorite:', err);
       toast({
         variant: 'destructive',
-        title: translate('common.error', language),
+        title: 'Erreur',
         description: 'Impossible de retirer des favoris',
         duration: 3000,
       });
@@ -237,11 +234,11 @@ export default function FavoritesPage() {
               <ArrowLeft className="h-6 w-6" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold">{translate('favorites.title', language)}</h1>
+          <h1 className="text-xl font-bold">Mes Favoris</h1>
         </header>
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground mt-4">{translate('common.loading', language)}</p>
+          <p className="text-muted-foreground mt-4">Chargement...</p>
         </div>
       </div>
     );
@@ -283,7 +280,7 @@ export default function FavoritesPage() {
         <h1 className="text-xl font-bold">{translate('favorites.title', language)}</h1>
         {favorites.length > 0 && (
           <span className="ml-auto text-sm text-muted-foreground">
-            {translate('favorites.count', language, { 
+            {favorites.length} favori{favorites.length > 1 ? 's' : ''} 
               count: favorites.length.toString(),
               plural: favorites.length > 1 ? 's' : ''
             })}

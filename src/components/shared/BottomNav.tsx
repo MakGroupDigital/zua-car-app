@@ -15,32 +15,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useLanguageContext } from '@/contexts/language-context';
-import { translate } from '@/lib/i18n/translations';
 
-const navItemsConfig = [
-  { href: '/home', icon: Home, key: 'home' },
-  { href: '/favorites', icon: HeartPulse, key: 'favorites' },
-  { href: '/messages', icon: MessageCircle, key: 'messages' },
-  { href: '/profile', icon: Settings, key: 'profile' },
+const navItems = [
+  { href: '/home', icon: Home, label: 'Accueil' },
+  { href: '/favorites', icon: HeartPulse, label: 'Favoris' },
+  { href: '/messages', icon: MessageCircle, label: 'Messages' },
+  { href: '/profile', icon: Settings, label: 'Réglages' },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { language } = useLanguageContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleOptionClick = (href: string) => {
     setIsDialogOpen(false);
     router.push(href);
   };
-
-  // Translate nav items
-  const navItems = navItemsConfig.map(item => ({
-    ...item,
-    label: translate(`nav.${item.key}`, language),
-  }));
 
   // Séparer les items en deux groupes (2 à gauche, 2 à droite)
   const leftItems = navItems.slice(0, 2);
@@ -151,10 +142,10 @@ export function BottomNav() {
         <DialogContent className="sm:max-w-[425px] bg-card/95 backdrop-blur-xl border-2 border-border/50 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              {translate('home.create.offer', language)}
+              Créer une nouvelle offre
             </DialogTitle>
             <DialogDescription>
-              {translate('home.create.offer.description', language)}
+              Choisissez le type d'offre que vous souhaitez créer
             </DialogDescription>
           </DialogHeader>
           
@@ -171,8 +162,8 @@ export function BottomNav() {
                 <Tag className="h-8 w-8" />
               </div>
               <div className="text-center">
-                <h3 className="font-bold text-lg mb-1">{translate('home.sell.vehicle', language)}</h3>
-                <p className="text-sm text-white/90">{translate('home.sell.vehicle.description', language)}</p>
+                <h3 className="font-bold text-lg mb-1">Vendre un véhicule</h3>
+                <p className="text-sm text-white/90">Mettez votre véhicule en vente</p>
               </div>
             </Button>
 
@@ -188,8 +179,8 @@ export function BottomNav() {
                 <KeyRound className="h-8 w-8" />
               </div>
               <div className="text-center">
-                <h3 className="font-bold text-lg mb-1">{translate('home.rent.vehicle', language)}</h3>
-                <p className="text-sm text-white/90">{translate('home.rent.vehicle.description', language)}</p>
+                <h3 className="font-bold text-lg mb-1">Louer un véhicule</h3>
+                <p className="text-sm text-white/90">Proposez votre véhicule à la location</p>
               </div>
             </Button>
           </div>

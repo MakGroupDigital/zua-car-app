@@ -103,8 +103,10 @@ export default function ProfilePage() {
         description: 'Votre photo de profil a été modifiée avec succès',
       });
 
-      // Force page refresh to show new photo
-      router.refresh();
+      // Force re-render by updating state
+      // The useDoc hook will automatically update via onSnapshot
+      // But we need to wait a bit for Firestore to propagate
+      // No need to reload, the onSnapshot will update automatically
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       toast({
@@ -203,7 +205,11 @@ export default function ProfilePage() {
                 isUploadingPhoto && "opacity-50"
               )}>
                 {photoURL ? (
-                  <AvatarImage src={photoURL} alt="Photo de profil" />
+                  <AvatarImage 
+                    src={`${photoURL}?t=${Date.now()}`} 
+                    alt="Photo de profil"
+                    key={photoURL}
+                  />
                 ) : null}
               <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
             </Avatar>

@@ -405,7 +405,13 @@ export default function HomePage() {
               <Link href="/profile" className="group">
                 <div className="relative">
                   <Avatar className="h-10 w-10 border-2 border-primary shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ring-2 ring-primary/30 group-hover:ring-accent/50">
-                    {userPhotoURL && <AvatarImage src={userPhotoURL} alt="Photo de profil" />}
+                    {userPhotoURL && (
+                      <AvatarImage 
+                        src={`${userPhotoURL}?t=${Date.now()}`} 
+                        alt="Photo de profil"
+                        key={userPhotoURL}
+                      />
+                    )}
                     <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
                       {userInitials}
                     </AvatarFallback>

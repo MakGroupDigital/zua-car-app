@@ -245,6 +245,8 @@ function MessagesPageContent() {
 
     // Global listener for new messages to create notifications
     // This listens to conversation updates (lastMessageTime) to detect new messages
+    // NOTE: Notifications are also created in handleSendMessage, so this listener is a backup
+    // for when messages are sent from other devices/sessions
     useEffect(() => {
         if (!user || !firestore) return;
 
@@ -256,13 +258,14 @@ function MessagesPageContent() {
         );
 
         let previousLastMessages: { [key: string]: Timestamp | null } = {};
+        let processedMessages: Set<string> = new Set(); // Track processed messages to avoid duplicates
 
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             snapshot.forEach(async (convoDoc) => {
                 const convoData = convoDoc.data() as Conversation;
                 const convoId = convoDoc.id;
                 
-                // Skip if this is the currently selected conversation
+                // Skip if this is the currently selected conversation (user is viewing it)
                 if (selectedConversationId === convoId) {
                     previousLastMessages[convoId] = convoData.lastMessageTime;
                     return;
@@ -284,12 +287,21 @@ function MessagesPageContent() {
                         const messagesSnapshot = await getDocs(messagesQuery);
                         messagesSnapshot.forEach(async (msgDoc) => {
                             const msgData = msgDoc.data() as Message;
+                            const messageId = `${convoId}_${msgDoc.id}_${msgData.createdAt?.toMillis() || Date.now()}`;
+                            
+                            // Skip if already processed
+                            if (processedMessages.has(messageId)) {
+                                return;
+                            }
                             
                             // Only create notification if message is from someone else
                             if (msgData.senderId !== user.uid) {
                                 // Get sender info for notification
                                 const sender = convoData.participants.find(p => p.id === msgData.senderId);
                                 if (sender) {
+                                    // Mark as processed
+                                    processedMessages.add(messageId);
+                                    
                                     // Create notification for the current user (recipient)
                                     await createMessageNotification(
                                         firestore,

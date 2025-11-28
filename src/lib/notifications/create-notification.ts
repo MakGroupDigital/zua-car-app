@@ -22,6 +22,7 @@ export async function createNotification(
   notificationData: NotificationData
 ): Promise<void> {
   try {
+    // Save notification to Firestore
     const notificationRef = doc(collection(firestore, 'notifications'));
     await setDoc(notificationRef, {
       ...notificationData,
@@ -29,38 +30,57 @@ export async function createNotification(
       createdAt: serverTimestamp(),
     });
 
-    // Trigger push notification if user has permission
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      // Create browser notification
-      const notification = new Notification(notificationData.title, {
-        body: notificationData.body,
-        icon: '/icon.jpg', // App logo
-        badge: '/icon.jpg',
-        tag: notificationData.type,
-        data: notificationData.data,
-        requireInteraction: false,
-        silent: false, // Play sound
-      });
-
-      // Handle click
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
+    // Send push notification via service worker (works even if user is not in app)
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
         
-        // Navigate based on notification type
-        if (notificationData.data?.conversationId) {
-          window.location.href = '/messages';
-        } else if (notificationData.data?.vehicleId) {
-          window.location.href = `/vehicles/${notificationData.data.vehicleId}`;
-        } else if (notificationData.data?.partId) {
-          window.location.href = `/parts/${notificationData.data.partId}`;
-        } else if (notificationData.data?.rentalId) {
-          window.location.href = `/vehicleRentalListings/${notificationData.data.rentalId}`;
+        // Check if notifications are allowed
+        if (Notification.permission === 'granted') {
+          // Send message to service worker to show notification
+          await registration.showNotification(notificationData.title, {
+            body: notificationData.body,
+            icon: '/icon.jpg', // App logo
+            badge: '/icon.jpg',
+            tag: notificationData.type,
+            data: notificationData.data,
+            requireInteraction: false,
+            silent: false, // Play sound
+            vibrate: [200, 100, 200], // Vibration pattern for mobile
+          });
         }
-      };
+      } catch (swError) {
+        console.error('Error sending notification via service worker:', swError);
+        // Fallback to browser notification if service worker fails
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const notification = new Notification(notificationData.title, {
+            body: notificationData.body,
+            icon: '/icon.jpg',
+            badge: '/icon.jpg',
+            tag: notificationData.type,
+            data: notificationData.data,
+            requireInteraction: false,
+            silent: false,
+          });
 
-      // Auto close after 5 seconds
-      setTimeout(() => notification.close(), 5000);
+          notification.onclick = () => {
+            window.focus();
+            notification.close();
+            
+            if (notificationData.data?.conversationId) {
+              window.location.href = '/messages';
+            } else if (notificationData.data?.vehicleId) {
+              window.location.href = `/vehicles/${notificationData.data.vehicleId}`;
+            } else if (notificationData.data?.partId) {
+              window.location.href = `/parts/${notificationData.data.partId}`;
+            } else if (notificationData.data?.rentalId) {
+              window.location.href = `/vehicleRentalListings/${notificationData.data.rentalId}`;
+            }
+          };
+
+          setTimeout(() => notification.close(), 5000);
+        }
+      }
     }
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -79,10 +99,10 @@ export async function createMessageNotification(
   const preview = messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText;
   
   await createNotification(firestore, {
-    userId: recipientId,
+    userId: recipientId, // IMPORTANT: recipientId est le destinataire qui doit recevoir la notification
     type: 'message',
     title: `Nouveau message de ${senderName}`,
-    body: `Vous avez reçu un nouveau message`,
+    body: preview, // Afficher le contenu du message dans le body
     data: {
       conversationId,
       messagePreview: preview,

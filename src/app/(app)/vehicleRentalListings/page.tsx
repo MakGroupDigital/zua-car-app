@@ -269,18 +269,25 @@ export default function VehicleRentalPage() {
                 <Card key={rental.id} className="overflow-hidden shadow-lg border-2 border-primary/10 rounded-2xl bg-card">
                   {/* Header avec vendeur */}
                   <div className="p-4 flex items-center gap-3 border-b border-primary/10">
-                    {rental.userId && sellerNames[rental.userId] && (
+                    {rental.userId && sellerNames && sellerNames[rental.userId] ? (
                       <>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                          {sellerNames[rental.userId].name.charAt(0).toUpperCase()}
+                          {sellerNames[rental.userId]?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-sm">{sellerNames[rental.userId].name}</p>
+                          <p className="font-semibold text-sm">{sellerNames[rental.userId]?.name || 'Utilisateur'}</p>
                           {rental.location && (
                             <p className="text-xs text-muted-foreground">📍 {rental.location}</p>
                           )}
                         </div>
                       </>
+                    ) : (
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm">Loueur</p>
+                        {rental.location && (
+                          <p className="text-xs text-muted-foreground">📍 {rental.location}</p>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -304,8 +311,8 @@ export default function VehicleRentalPage() {
                         </CarouselContent>
                         {rentalImages.length > 1 && (
                           <>
-                            <CarouselPrevious className="left-2" />
-                            <CarouselNext className="right-2" />
+                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white" />
+                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white" />
                           </>
                         )}
                       </Carousel>

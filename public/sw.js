@@ -14,6 +14,27 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
+// Message event from client to service worker
+self.addEventListener('message', (event) => {
+  console.log('Service Worker received message:', event.data);
+  
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, body, data, tag } = event.data;
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: APP_LOGO,
+        badge: APP_LOGO,
+        tag: tag || 'notification',
+        data: data || {},
+        requireInteraction: false,
+        silent: false,
+        vibrate: [200, 100, 200],
+      })
+    );
+  }
+});
+
 // Push notification event
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);

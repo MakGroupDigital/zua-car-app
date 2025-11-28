@@ -417,7 +417,6 @@ function MessagesPageContent() {
         }
 
         const messageText = newMessage.trim();
-        setNewMessage('');
         setIsSending(true);
 
         try {
@@ -468,6 +467,9 @@ function MessagesPageContent() {
             
             await updateDoc(convoRef, updateData);
 
+            // Clear message input after successful send
+            setNewMessage('');
+
             // Create notification for recipient (NOT for sender)
             if (otherParticipantId && otherParticipant) {
                 await createMessageNotification(
@@ -503,7 +505,7 @@ function MessagesPageContent() {
                 description: errorMessage,
                 duration: 5000,
             });
-            setNewMessage(messageText);
+            // Don't restore message on error - let user retry with fresh input
         } finally {
             setIsSending(false);
         }

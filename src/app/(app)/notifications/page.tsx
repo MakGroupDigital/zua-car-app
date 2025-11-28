@@ -111,8 +111,7 @@ export default function NotificationsPage() {
     const q = query(
       notificationsRef,
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      orderBy('read', 'asc')
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

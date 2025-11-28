@@ -159,17 +159,22 @@ export async function createMessageNotification(
       const registration = await navigator.serviceWorker.ready;
       
       if (Notification.permission === 'granted') {
+        // Build data object without undefined values
+        const notificationData: any = {
+          conversationId,
+          messagePreview: preview,
+          senderName,
+        };
+        if (senderPhoto) {
+          notificationData.senderPhoto = senderPhoto;
+        }
+        
         await registration.showNotification(`Nouveau message de ${senderName}`, {
           body: preview,
           icon: '/icon.jpg',
           badge: '/icon.jpg',
           tag: 'message',
-          data: {
-            conversationId,
-            messagePreview: preview,
-            senderName,
-            senderPhoto,
-          },
+          data: notificationData,
           requireInteraction: false,
           silent: false,
           vibrate: [200, 100, 200],
@@ -179,17 +184,22 @@ export async function createMessageNotification(
       console.error('Error sending notification via service worker:', swError);
       // Fallback to browser notification
       if ('Notification' in window && Notification.permission === 'granted' && currentUserId === recipientId) {
+        // Build data object without undefined values
+        const notificationData: any = {
+          conversationId,
+          messagePreview: preview,
+          senderName,
+        };
+        if (senderPhoto) {
+          notificationData.senderPhoto = senderPhoto;
+        }
+        
         const notification = new Notification(`Nouveau message de ${senderName}`, {
           body: preview,
           icon: '/icon.jpg',
           badge: '/icon.jpg',
           tag: 'message',
-          data: {
-            conversationId,
-            messagePreview: preview,
-            senderName,
-            senderPhoto,
-          },
+          data: notificationData,
           requireInteraction: false,
           silent: false,
         });

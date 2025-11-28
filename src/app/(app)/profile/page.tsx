@@ -33,6 +33,7 @@ export default function ProfilePage() {
   const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoKey, setPhotoKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userDocRef = useMemoFirebase(() => {
@@ -103,10 +104,11 @@ export default function ProfilePage() {
         description: 'Votre photo de profil a été modifiée avec succès',
       });
 
-      // Force re-render by updating state
+      // Force re-render by updating photo key
+      setPhotoKey(prev => prev + 1);
+      
+      // Force re-render of AvatarImage by updating state
       // The useDoc hook will automatically update via onSnapshot
-      // But we need to wait a bit for Firestore to propagate
-      // No need to reload, the onSnapshot will update automatically
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       toast({
@@ -206,17 +208,24 @@ export default function ProfilePage() {
               )}>
                 {photoURL ? (
                   <AvatarImage 
-                    src={`${photoURL}?t=${Date.now()}`} 
+                    src={`${photoURL}?v=${photoKey}&t=${Date.now()}`} 
                     alt="Photo de profil"
-                    key={photoURL}
+                    key={`${photoURL}-${photoKey}`}
+                    onError={(e) => {
+                      console.error('Error loading profile image:', photoURL);
+                      console.error('Error event:', e);
+                    }}
+                    onLoad={() => {
+                      console.log('Profile image loaded successfully:', photoURL);
+                    }}
                   />
                 ) : null}
               <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
             </Avatar>
               
-              {/* Camera overlay */}
+              {/* Camera overlay - only show on hover, not blocking the image */}
               <div className={cn(
-                "absolute inset-0 flex items-center justify-center rounded-full bg-black/40 transition-opacity",
+                "absolute inset-0 flex items-center justify-center rounded-full bg-black/40 transition-opacity pointer-events-none z-10",
                 isUploadingPhoto ? "opacity-100" : "opacity-0 group-hover:opacity-100"
               )}>
                 {isUploadingPhoto ? (
@@ -227,7 +236,7 @@ export default function ProfilePage() {
               </div>
               
               {/* Camera badge */}
-              <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1.5 shadow-lg border-2 border-background">
+              <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1.5 shadow-lg border-2 border-background z-10">
                 <Camera className="h-4 w-4 text-primary-foreground" />
               </div>
             </div>

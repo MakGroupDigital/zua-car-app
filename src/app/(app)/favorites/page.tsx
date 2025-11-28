@@ -10,7 +10,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, getDoc, updateDoc, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/hooks/use-language';
+import { useLanguageContext } from '@/contexts/language-context';
 import { translate } from '@/lib/i18n/translations';
 
 interface FavoriteItem {
@@ -36,7 +36,7 @@ export default function FavoritesPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { language } = useLanguage();
+  const { language } = useLanguageContext();
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);

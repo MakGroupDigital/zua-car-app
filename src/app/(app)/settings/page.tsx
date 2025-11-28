@@ -9,14 +9,14 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Bell, Moon, Globe, Shield, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
-import { useLanguage } from '@/hooks/use-language';
+import { useLanguageContext } from '@/contexts/language-context';
 import type { Language } from '@/lib/i18n/translations';
 
 export default function SettingsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
   const { theme, setTheme, mounted: themeMounted } = useTheme();
-  const { language, setLanguage, mounted: langMounted } = useLanguage();
+  const { language, setLanguage, mounted: langMounted } = useLanguageContext();
   
   const darkMode = theme === 'dark';
 

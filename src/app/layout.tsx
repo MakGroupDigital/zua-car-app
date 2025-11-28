@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import { useTheme } from '@/hooks/use-theme';
+import { LanguageProvider } from '@/contexts/language-context';
 import { useEffect } from 'react';
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -58,11 +59,13 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased", "min-h-screen bg-background font-sans")}>
         <ThemeProvider>
-          <RegisterServiceWorker />
-          <FirebaseClientProvider>
-            {children}
-          </FirebaseClientProvider>
-          <Toaster />
+          <LanguageProvider>
+            <RegisterServiceWorker />
+            <FirebaseClientProvider>
+              {children}
+            </FirebaseClientProvider>
+            <Toaster />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -24,11 +24,34 @@ export async function createNotification(
   try {
     // Save notification to Firestore
     const notificationRef = doc(collection(firestore, 'notifications'));
-    await setDoc(notificationRef, {
-      ...notificationData,
+    
+    // Remove undefined values from data object (Firestore doesn't accept undefined)
+    const cleanData: any = {
+      userId: notificationData.userId,
+      type: notificationData.type,
+      title: notificationData.title,
+      body: notificationData.body,
       read: false,
       createdAt: serverTimestamp(),
-    });
+    };
+    
+    // Only include optional fields if they are defined
+    if (notificationData.data) {
+      cleanData.data = {};
+      if (notificationData.data.conversationId) cleanData.data.conversationId = notificationData.data.conversationId;
+      if (notificationData.data.messagePreview) cleanData.data.messagePreview = notificationData.data.messagePreview;
+      if (notificationData.data.senderName) cleanData.data.senderName = notificationData.data.senderName;
+      if (notificationData.data.senderPhoto) cleanData.data.senderPhoto = notificationData.data.senderPhoto;
+      if (notificationData.data.vehicleId) cleanData.data.vehicleId = notificationData.data.vehicleId;
+      if (notificationData.data.partId) cleanData.data.partId = notificationData.data.partId;
+      if (notificationData.data.rentalId) cleanData.data.rentalId = notificationData.data.rentalId;
+    }
+    
+    if (notificationData.imageUrl) {
+      cleanData.imageUrl = notificationData.imageUrl;
+    }
+    
+    await setDoc(notificationRef, cleanData);
 
     // IMPORTANT: Only show push notification if the current user is the recipient
     // Check if the current user matches the notification recipient
@@ -107,7 +130,9 @@ export async function createMessageNotification(
   
   // Save notification to Firestore (always save for recipient)
   const notificationRef = doc(collection(firestore, 'notifications'));
-  await setDoc(notificationRef, {
+  
+  // Build data object without undefined values (Firestore doesn't accept undefined)
+  const notificationData: any = {
     userId: recipientId, // IMPORTANT: recipientId est le destinataire qui doit recevoir la notification
     type: 'message',
     title: `Nouveau message de ${senderName}`,
@@ -116,11 +141,17 @@ export async function createMessageNotification(
       conversationId,
       messagePreview: preview,
       senderName,
-      senderPhoto,
     },
     read: false,
     createdAt: serverTimestamp(),
-  });
+  };
+  
+  // Only add senderPhoto if it's defined
+  if (senderPhoto) {
+    notificationData.data.senderPhoto = senderPhoto;
+  }
+  
+  await setDoc(notificationRef, notificationData);
 
   // Only show push notification if current user is the recipient (not the sender)
   if (typeof window !== 'undefined' && currentUserId === recipientId && 'serviceWorker' in navigator) {

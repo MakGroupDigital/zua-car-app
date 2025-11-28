@@ -31,53 +31,47 @@ export function useFCM() {
     let messaging: Messaging | null = null;
 
     try {
-      // Vérifier que le service worker est enregistré avant d'initialiser messaging
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        if (registration) {
-          messaging = getMessaging(firebaseApp);
-        }
-      }
+      messaging = getMessaging(firebaseApp);
     } catch (err) {
       console.error('Error initializing messaging:', err);
       setError(err as Error);
       return;
     }
 
-    if (!messaging) {
-      console.warn('Messaging not available. Service worker may not be registered.');
-      return;
-    }
+    // Fonction async pour gérer l'obtention du token
+    const initializeFCM = async () => {
+      try {
+        // Vérifier que le service worker est enregistré
+        if ('serviceWorker' in navigator) {
+          await navigator.serviceWorker.ready;
+        }
 
-    // Demander la permission et obtenir le token
-    getToken(messaging, { vapidKey: FCM_VAPID_KEY })
-      .then((currentToken) => {
-        if (currentToken) {
+        // Demander la permission et obtenir le token
+          if (currentToken) {
           console.log('FCM Token obtained:', currentToken);
           setToken(currentToken);
           
           // Enregistrer le token dans Firestore
           const tokenRef = doc(firestore, 'fcmTokens', user.uid);
-          setDoc(tokenRef, {
+          await setDoc(tokenRef, {
             token: currentToken,
             userId: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-          }, { merge: true })
-            .then(() => {
-              console.log('FCM token saved to Firestore');
-            })
-            .catch((err) => {
-              console.error('Error saving FCM token:', err);
-            });
+          }, { merge: true });
+          
+          console.log('FCM token saved to Firestore');
         } else {
           console.log('No registration token available. Request permission to generate one.');
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('An error occurred while retrieving token:', err);
         setError(err as Error);
-      });
+      }
+    };
+
+    // Appeler la fonction async
+    initializeFCM();
 
     // Écouter les messages quand l'app est au premier plan
     onMessage(messaging, (payload) => {

@@ -33,7 +33,6 @@ export default function ProfilePage() {
   const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [photoKey, setPhotoKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userDocRef = useMemoFirebase(() => {
@@ -104,11 +103,8 @@ export default function ProfilePage() {
         description: 'Votre photo de profil a été modifiée avec succès',
       });
 
-      // Force re-render by updating photo key
-      setPhotoKey(prev => prev + 1);
-      
-      // Force re-render of AvatarImage by updating state
-      // The useDoc hook will automatically update via onSnapshot
+      // Force page refresh to show new photo
+      router.refresh();
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       toast({

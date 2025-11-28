@@ -9,12 +9,14 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Bell, Moon, Globe, Shield, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
+import { useLanguage } from '@/hooks/use-language';
+import type { Language } from '@/lib/i18n/translations';
 
 export default function SettingsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
-  const { theme, setTheme, mounted } = useTheme();
-  const [language, setLanguage] = useState('fr');
+  const { theme, setTheme, mounted: themeMounted } = useTheme();
+  const { language, setLanguage, mounted: langMounted } = useLanguage();
   
   const darkMode = theme === 'dark';
 
@@ -81,7 +83,7 @@ export default function SettingsPage() {
                 checked={darkMode}
                 onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                 className="data-[state=checked]:bg-primary"
-                disabled={!mounted}
+                disabled={!themeMounted}
               />
             </div>
           </CardContent>
@@ -101,7 +103,8 @@ export default function SettingsPage() {
                 <Label className="text-base font-medium">Langue de l'application</Label>
                 <select
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  onChange={(e) => setLanguage(e.target.value as Language)}
+                  disabled={!langMounted}
                   className="px-3 py-2 rounded-md border border-primary/20 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
                   <option value="fr">Français</option>

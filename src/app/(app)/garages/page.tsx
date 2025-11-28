@@ -566,11 +566,37 @@ export default function GaragesPage() {
         }
       },
       (error) => {
-        console.error('GPS tracking error:', error);
+        let errorMessage = 'Impossible de suivre votre position';
+        
+        if (error) {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Autorisation de localisation refusée';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Position non disponible';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Délai d\'attente dépassé';
+              break;
+            default:
+              errorMessage = error.message || 'Erreur de géolocalisation';
+          }
+          
+          console.error('GPS tracking error:', {
+            code: error.code,
+            message: error.message,
+            error: error
+          });
+        } else {
+          console.error('GPS tracking error: Unknown error');
+        }
+        
         toast({
           variant: 'destructive',
           title: 'Erreur GPS',
-          description: 'Impossible de suivre votre position',
+          description: errorMessage,
+          duration: 3000,
         });
       },
       {
@@ -928,12 +954,6 @@ export default function GaragesPage() {
                         {navigationData.distance < 1000
                           ? `${Math.round(navigationData.distance)} m`
                           : `${(navigationData.distance / 1000).toFixed(1)} km`}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Durée estimée</span>
-                      <span className="font-bold text-accent">
-                        {Math.round(navigationData.duration / 60)} min
                       </span>
                     </div>
                   </div>

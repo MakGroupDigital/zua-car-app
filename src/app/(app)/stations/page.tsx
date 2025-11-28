@@ -566,11 +566,37 @@ export default function StationsPage() {
         }
       },
       (error) => {
-        console.error('GPS tracking error:', error);
+        let errorMessage = 'Impossible de suivre votre position';
+        
+        if (error) {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Autorisation de localisation refusée';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Position non disponible';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Délai d\'attente dépassé';
+              break;
+            default:
+              errorMessage = error.message || 'Erreur de géolocalisation';
+          }
+          
+          console.error('GPS tracking error:', {
+            code: error.code,
+            message: error.message,
+            error: error
+          });
+        } else {
+          console.error('GPS tracking error: Unknown error');
+        }
+        
         toast({
           variant: 'destructive',
           title: 'Erreur GPS',
-          description: 'Impossible de suivre votre position',
+          description: errorMessage,
+          duration: 3000,
         });
       },
       {

@@ -47,7 +47,9 @@ export function useFCM() {
         }
 
         // Demander la permission et obtenir le token
-          if (currentToken) {
+        const currentToken = await getToken(messaging, { vapidKey: FCM_VAPID_KEY });
+        
+        if (currentToken) {
           console.log('FCM Token obtained:', currentToken);
           setToken(currentToken);
           

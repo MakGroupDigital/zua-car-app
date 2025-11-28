@@ -131,13 +131,17 @@ service cloud.firestore {
 
       // Sous-collection Messages
       match /messages/{messageId} {
+        // Fonction helper pour vérifier que l'utilisateur est participant
+        function isParticipant() {
+          let convo = get(/databases/$(database)/documents/conversations/$(conversationId));
+          return isSignedIn() && request.auth.uid in convo.data.participantIds;
+        }
+        
         // Lecture autorisée si l'utilisateur est participant de la conversation parente
-        allow read: if isSignedIn() 
-          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+        allow read: if isParticipant();
         
         // Création autorisée si l'utilisateur est participant et est l'expéditeur
-        allow create: if isSignedIn() 
-          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds
+        allow create: if isParticipant() 
           && request.resource.data.senderId == request.auth.uid;
         
         // Pas de modification ni suppression des messages

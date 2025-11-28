@@ -406,13 +406,34 @@ function MessagesPageContent() {
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedConversationId || !user || !firestore) return;
+        if (!newMessage.trim() || !selectedConversationId || !user || !firestore) {
+            console.warn('Cannot send message:', {
+                hasMessage: !!newMessage.trim(),
+                hasConversationId: !!selectedConversationId,
+                hasUser: !!user,
+                hasFirestore: !!firestore,
+            });
+            return;
+        }
 
         const messageText = newMessage.trim();
         setNewMessage('');
         setIsSending(true);
 
         try {
+            // Verify conversation exists and user is participant
+            const convoRef = doc(firestore, 'conversations', selectedConversationId);
+            const convoSnap = await getDoc(convoRef);
+            
+            if (!convoSnap.exists()) {
+                throw new Error('La conversation n\'existe pas');
+            }
+            
+            const convoData = convoSnap.data();
+            if (!convoData.participantIds || !convoData.participantIds.includes(user.uid)) {
+                throw new Error('Vous n\'êtes pas participant de cette conversation');
+            }
+            
             let senderName = 'Moi';
             const userDocRef = doc(firestore, 'users', user.uid);
             const userSnap = await getDoc(userDocRef);
@@ -431,17 +452,21 @@ function MessagesPageContent() {
                 createdAt: serverTimestamp(),
             });
 
-            const convoRef = doc(firestore, 'conversations', selectedConversationId);
             const otherParticipantId = selectedConversation?.participantIds.find(id => id !== user.uid);
             const otherParticipant = selectedConversation?.participants.find(p => p.id !== user.uid);
             
-            await updateDoc(convoRef, {
+            // Update conversation with last message
+            const updateData: any = {
                 lastMessage: messageText,
                 lastMessageTime: serverTimestamp(),
-                ...(otherParticipantId && {
-                    [`unreadCount.${otherParticipantId}`]: (selectedConversation?.unreadCount?.[otherParticipantId] || 0) + 1,
-                }),
-            });
+            };
+            
+            if (otherParticipantId) {
+                const currentUnreadCount = convoData.unreadCount?.[otherParticipantId] || 0;
+                updateData[`unreadCount.${otherParticipantId}`] = currentUnreadCount + 1;
+            }
+            
+            await updateDoc(convoRef, updateData);
 
             // Create notification for recipient (NOT for sender)
             if (otherParticipantId && otherParticipant) {

@@ -88,6 +88,23 @@ service cloud.firestore {
       allow create, update, delete: if isOwner(userId);
     }
 
+    // --- Collection FCM Tokens (Tokens pour notifications push) ---
+    match /fcmTokens/{userId} {
+      // Lecture uniquement par le propriétaire
+      allow get: if isOwner(userId);
+      
+      // Création et mise à jour uniquement par le propriétaire
+      allow create, update: if isOwner(userId) 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.token is string;
+      
+      // Suppression uniquement par le propriétaire
+      allow delete: if isOwner(userId);
+      
+      // Pas de liste pour éviter l'énumération
+      allow list: if false;
+    }
+
     // --- Collection Demandes d'Assurance ---
     match /insuranceRequests/{requestId} {
       // Création autorisée pour tous (même non connectés)

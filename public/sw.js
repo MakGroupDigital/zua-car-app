@@ -1,4 +1,19 @@
-// Service Worker for Push Notifications
+// Service Worker for Push Notifications with FCM
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+// Initialize Firebase in Service Worker
+firebase.initializeApp({
+  apiKey: "AIzaSyD1qayBveIM9rUPJADxha0tRctQ5mJfF0U",
+  authDomain: "zua-car.firebaseapp.com",
+  projectId: "zua-car",
+  storageBucket: "zua-car.firebasestorage.app",
+  messagingSenderId: "33080094825",
+  appId: "1:33080094825:web:9fc623968b1355ab16f2f8"
+});
+
+const messaging = firebase.messaging();
+
 const CACHE_NAME = 'zua-car-v1';
 const APP_LOGO = '/icon.jpg';
 
@@ -35,7 +50,28 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Push notification event
+// FCM Background Message Handler (quand l'app est fermée ou en arrière-plan)
+messaging.onBackgroundMessage((payload) => {
+  console.log('FCM message received in background:', payload);
+  
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'Zua-Car';
+  const notificationBody = payload.notification?.body || payload.data?.body || 'Vous avez une nouvelle notification';
+  
+  const notificationOptions = {
+    body: notificationBody,
+    icon: APP_LOGO,
+    badge: APP_LOGO,
+    tag: payload.data?.type || 'zua-car-notification',
+    data: payload.data || {},
+    requireInteraction: false,
+    silent: false, // Play sound
+    vibrate: [200, 100, 200], // Vibration pattern for mobile
+  };
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Push notification event (fallback pour les notifications non-FCM)
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
   

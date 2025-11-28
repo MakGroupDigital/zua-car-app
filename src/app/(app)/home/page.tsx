@@ -14,6 +14,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { doc, collection, query, orderBy, limit, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, where, onSnapshot } from 'firebase/firestore';
 import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
 import { useLocation } from '@/hooks/use-location';
+import { useSellerNames } from '@/hooks/use-seller-names';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -52,6 +53,7 @@ interface Vehicle {
   imageUrls?: string[];
   imageUrl?: string;
   status?: string;
+  userId?: string;
 }
 
 
@@ -91,6 +93,14 @@ export default function HomePage() {
   
   // Fetch ratings for all vehicles
   const { ratings: vehicleRatings } = useVehicleRatings(firestore, vehicleIds);
+  
+  // Get seller IDs for vehicles
+  const sellerIds = useMemo(() => {
+    return (vehicles || []).map(v => v.userId).filter(Boolean) as string[];
+  }, [vehicles]);
+  
+  // Fetch seller names
+  const { sellerNames } = useSellerNames(sellerIds);
 
   // Fetch user's favorites
   useEffect(() => {
@@ -373,7 +383,7 @@ export default function HomePage() {
                   <span className="font-medium text-sm text-primary/70">
                     {isLocationLoading ? 'Chargement...' : 'Partager votre localisation'}
                   </span>
-                </div>
+           </div>
               </button>
             )}
            <div className="flex items-center gap-3">
@@ -439,7 +449,7 @@ export default function HomePage() {
               className="rounded-full h-12 w-12 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border-2 border-primary/30 hover:border-accent/50"
             >
               <ShoppingCart className="h-5 w-5" />
-            </Button>
+          </Button>
           </Link>
         </div>
 
@@ -453,9 +463,9 @@ export default function HomePage() {
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
             {services.map((service, index) => {
-              const Icon = service.icon;
+                const Icon = service.icon;
               const isActive = index === 0; // Location is active by default (first category)
-              return (
+                return (
                 <Link 
                   href={service.href} 
                   key={service.name}
@@ -483,10 +493,10 @@ export default function HomePage() {
                       {service.name}
                     </span>
                   </div>
-                </Link>
-              );
-            })}
-          </div>
+                  </Link>
+                );
+              })}
+            </div>
         </div>
 
         {/* Popular Cars Section with primary colors */}
@@ -528,6 +538,7 @@ export default function HomePage() {
                 const isToggling = togglingFavorite === vehicle.id;
                 const vehicleRating = vehicleRatings[vehicle.id] || { average: 0, count: 0 };
                 const rating = vehicleRating.average || 0;
+                const sellerInfo = sellerNames[vehicle.userId] || { name: 'Vendeur' };
                 
               return (
                   <Link 
@@ -558,7 +569,7 @@ export default function HomePage() {
                                 isFavorite && "fill-current"
                               )} />
                             )}
-                          </Button>
+                      </Button>
                           
                           {vehicleImageUrl ? (
                             <div className="relative w-full h-[180px] overflow-hidden bg-muted">
@@ -596,27 +607,32 @@ export default function HomePage() {
                               </h3>
                             </div>
                           </div>
-                          {vehicleRating.count > 0 && (
-                            <div className="flex items-center gap-1">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={cn(
-                                    "h-4 w-4 transition-colors",
-                                    i < Math.floor(rating)
-                                      ? "fill-primary text-primary"
-                                      : i < rating
-                                      ? "fill-accent/50 text-accent/50"
-                                      : "fill-none text-muted-foreground"
-                                  )}
-                                />
-                              ))}
-                              <span className="text-sm text-primary font-medium ml-1">
-                                {rating.toFixed(1)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                          <div className="flex items-center justify-between">
+                            {vehicleRating.count > 0 && (
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={cn(
+                                      "h-4 w-4 transition-colors",
+                                      i < Math.floor(rating)
+                                        ? "fill-primary text-primary"
+                                        : i < rating
+                                        ? "fill-accent/50 text-accent/50"
+                                        : "fill-none text-muted-foreground"
+                                    )}
+                                  />
+                                ))}
+                                <span className="text-sm text-primary font-medium ml-1">
+                                  {rating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              Par {sellerInfo.name}
+                            </p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
                   </Link>

@@ -309,7 +309,8 @@ function MessagesPageContent() {
                                         sender.name,
                                         msgData.text,
                                         convoId,
-                                        sender.photoURL
+                                        sender.photoURL,
+                                        user.uid // Current user ID - to show notification only to recipient
                                     );
                                 }
                             }
@@ -442,15 +443,16 @@ function MessagesPageContent() {
                 }),
             });
 
-            // Create notification for recipient
+            // Create notification for recipient (NOT for sender)
             if (otherParticipantId && otherParticipant) {
                 await createMessageNotification(
                     firestore,
-                    otherParticipantId,
+                    otherParticipantId, // Recipient ID
                     senderName,
                     messageText,
                     selectedConversationId,
-                    user.photoURL || undefined
+                    user.photoURL || undefined,
+                    user.uid // Current user ID - to prevent showing notification to sender
                 );
             }
         } catch (err) {

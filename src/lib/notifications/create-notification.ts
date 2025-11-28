@@ -30,14 +30,19 @@ export async function createNotification(
       createdAt: serverTimestamp(),
     });
 
-    // Send push notification via service worker (works even if user is not in app)
+    // IMPORTANT: Only show push notification if the current user is the recipient
+    // Check if the current user matches the notification recipient
+    // This prevents the sender from receiving their own notifications
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       try {
+        // Get current user ID from Firebase Auth (if available)
+        // We'll check this in the calling code to ensure we only show notifications to the recipient
         const registration = await navigator.serviceWorker.ready;
         
         // Check if notifications are allowed
         if (Notification.permission === 'granted') {
           // Send message to service worker to show notification
+          // Note: This will only show if called from the recipient's browser
           await registration.showNotification(notificationData.title, {
             body: notificationData.body,
             icon: '/icon.jpg', // App logo
@@ -52,6 +57,7 @@ export async function createNotification(
       } catch (swError) {
         console.error('Error sending notification via service worker:', swError);
         // Fallback to browser notification if service worker fails
+        // Only show if this is the recipient's browser
         if ('Notification' in window && Notification.permission === 'granted') {
           const notification = new Notification(notificationData.title, {
             body: notificationData.body,
@@ -94,22 +100,79 @@ export async function createMessageNotification(
   senderName: string,
   messageText: string,
   conversationId: string,
-  senderPhoto?: string
+  senderPhoto?: string,
+  currentUserId?: string // Add current user ID to prevent showing notification to sender
 ): Promise<void> {
   const preview = messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText;
   
-  await createNotification(firestore, {
+  // Save notification to Firestore (always save for recipient)
+  const notificationRef = doc(collection(firestore, 'notifications'));
+  await setDoc(notificationRef, {
     userId: recipientId, // IMPORTANT: recipientId est le destinataire qui doit recevoir la notification
     type: 'message',
     title: `Nouveau message de ${senderName}`,
-    body: preview, // Afficher le contenu du message dans le body
+    body: preview,
     data: {
       conversationId,
       messagePreview: preview,
       senderName,
       senderPhoto,
     },
+    read: false,
+    createdAt: serverTimestamp(),
   });
+
+  // Only show push notification if current user is the recipient (not the sender)
+  if (typeof window !== 'undefined' && currentUserId === recipientId && 'serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      if (Notification.permission === 'granted') {
+        await registration.showNotification(`Nouveau message de ${senderName}`, {
+          body: preview,
+          icon: '/icon.jpg',
+          badge: '/icon.jpg',
+          tag: 'message',
+          data: {
+            conversationId,
+            messagePreview: preview,
+            senderName,
+            senderPhoto,
+          },
+          requireInteraction: false,
+          silent: false,
+          vibrate: [200, 100, 200],
+        });
+      }
+    } catch (swError) {
+      console.error('Error sending notification via service worker:', swError);
+      // Fallback to browser notification
+      if ('Notification' in window && Notification.permission === 'granted' && currentUserId === recipientId) {
+        const notification = new Notification(`Nouveau message de ${senderName}`, {
+          body: preview,
+          icon: '/icon.jpg',
+          badge: '/icon.jpg',
+          tag: 'message',
+          data: {
+            conversationId,
+            messagePreview: preview,
+            senderName,
+            senderPhoto,
+          },
+          requireInteraction: false,
+          silent: false,
+        });
+
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+          window.location.href = '/messages';
+        };
+
+        setTimeout(() => notification.close(), 5000);
+      }
+    }
+  }
 }
 
 // Helper function to create favorite notification

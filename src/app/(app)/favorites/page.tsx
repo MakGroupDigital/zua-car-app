@@ -72,68 +72,86 @@ export default function FavoritesPage() {
 
         // Fetch vehicles
         const vehiclePromises = vehicleIds.map(async (vehicleId) => {
-          const vehicleDocRef = doc(firestore, 'vehicles', vehicleId);
-          const vehicleSnap = await getDoc(vehicleDocRef);
-          
-          if (vehicleSnap.exists()) {
-            const data = vehicleSnap.data();
-            return {
-              id: vehicleSnap.id,
-              type: 'vehicle' as const,
-              title: data.title || `${data.make} ${data.model}`,
-              price: data.price,
-              imageUrls: data.imageUrls,
-              imageUrl: data.imageUrl,
-              make: data.make,
-              model: data.model,
-              year: data.year,
-            } as FavoriteItem;
+          try {
+            const vehicleDocRef = doc(firestore, 'vehicles', vehicleId);
+            const vehicleSnap = await getDoc(vehicleDocRef);
+            
+            if (vehicleSnap.exists()) {
+              const data = vehicleSnap.data();
+              return {
+                id: vehicleSnap.id,
+                type: 'vehicle' as const,
+                title: data.title || `${data.make} ${data.model}`,
+                price: data.price,
+                imageUrls: data.imageUrls,
+                imageUrl: data.imageUrl,
+                make: data.make,
+                model: data.model,
+                year: data.year,
+              } as FavoriteItem;
+            }
+            console.warn(`Vehicle ${vehicleId} does not exist`);
+            return null;
+          } catch (err: any) {
+            console.error(`Error fetching vehicle ${vehicleId}:`, err);
+            return null;
           }
-          return null;
         });
 
         // Fetch parts
         const partPromises = partIds.map(async (partId) => {
-          const partDocRef = doc(firestore, 'parts', partId);
-          const partSnap = await getDoc(partDocRef);
-          
-          if (partSnap.exists()) {
-            const data = partSnap.data();
-            return {
-              id: partSnap.id,
-              type: 'part' as const,
-              title: data.title || data.name,
-              price: data.price,
-              imageUrls: data.imageUrls,
-              imageUrl: data.imageUrl,
-              category: data.category,
-              condition: data.condition,
-            } as FavoriteItem;
+          try {
+            const partDocRef = doc(firestore, 'parts', partId);
+            const partSnap = await getDoc(partDocRef);
+            
+            if (partSnap.exists()) {
+              const data = partSnap.data();
+              return {
+                id: partSnap.id,
+                type: 'part' as const,
+                title: data.title || data.name,
+                price: data.price,
+                imageUrls: data.imageUrls,
+                imageUrl: data.imageUrl,
+                category: data.category,
+                condition: data.condition,
+              } as FavoriteItem;
+            }
+            console.warn(`Part ${partId} does not exist`);
+            return null;
+          } catch (err: any) {
+            console.error(`Error fetching part ${partId}:`, err);
+            return null;
           }
-          return null;
         });
 
         // Fetch rentals
         const rentalPromises = rentalIds.map(async (rentalId) => {
-          const rentalDocRef = doc(firestore, 'rentals', rentalId);
-          const rentalSnap = await getDoc(rentalDocRef);
-          
-          if (rentalSnap.exists()) {
-            const data = rentalSnap.data();
-            return {
-              id: rentalSnap.id,
-              type: 'rental' as const,
-              title: data.title || `${data.make} ${data.model}`,
-              price: data.pricePerDay || data.pricePerHour || 0,
-              imageUrls: data.imageUrls,
-              imageUrl: data.imageUrl,
-              make: data.make,
-              model: data.model,
-              location: data.location,
-              seats: data.seats,
-            } as FavoriteItem;
+          try {
+            const rentalDocRef = doc(firestore, 'rentals', rentalId);
+            const rentalSnap = await getDoc(rentalDocRef);
+            
+            if (rentalSnap.exists()) {
+              const data = rentalSnap.data();
+              return {
+                id: rentalSnap.id,
+                type: 'rental' as const,
+                title: data.title || `${data.make} ${data.model}`,
+                price: data.pricePerDay || data.pricePerHour || 0,
+                imageUrls: data.imageUrls,
+                imageUrl: data.imageUrl,
+                make: data.make,
+                model: data.model,
+                location: data.location,
+                seats: data.seats,
+              } as FavoriteItem;
+            }
+            console.warn(`Rental ${rentalId} does not exist`);
+            return null;
+          } catch (err: any) {
+            console.error(`Error fetching rental ${rentalId}:`, err);
+            return null;
           }
-          return null;
         });
 
         const [vehicles, parts, rentals] = await Promise.all([
@@ -285,9 +303,9 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-muted">
       <header className="bg-background p-4 flex items-center gap-4 shadow-sm sticky top-0 z-10">
         <Link href="/home">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
+            <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-6 w-6" />
+            </Button>
         </Link>
         <h1 className="text-xl font-bold">Mes Favoris</h1>
         {favorites.length > 0 && (
@@ -298,25 +316,25 @@ export default function FavoritesPage() {
       </header>
       <main className="p-4 space-y-4">
         {favorites.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
+             <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
             <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">Votre liste de favoris est vide</h3>
+                <h3 className="text-lg font-semibold">Votre liste de favoris est vide</h3>
             <p className="text-muted-foreground mt-2 max-w-md">
               Cliquez sur l'icône en forme de cœur sur une offre pour l'ajouter ici.
             </p>
             <Link href="/vehicles">
               <Button className="mt-4">Parcourir les offres</Button>
             </Link>
-          </div>
+             </div>
         ) : (
-          <div className="space-y-4">
+            <div className="space-y-4">
             {favorites.map((item) => {
               const itemImageUrl = item.imageUrls?.[0] || item.imageUrl;
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
 
-              return (
+                    return (
                 <Card key={`${item.type}-${item.id}`} className="shadow-md">
-                  <CardContent className="p-3 flex items-center gap-4">
+                            <CardContent className="p-3 flex items-center gap-4">
                     <Link href={getItemUrl(item)} className="flex-shrink-0">
                       {itemImageUrl ? (
                         <Image
@@ -327,20 +345,20 @@ export default function FavoritesPage() {
                           className="rounded-lg object-cover aspect-[4/3]"
                         />
                       ) : placeholderImage ? (
-                        <Image
+                                    <Image
                           src={placeholderImage.imageUrl}
                           alt={item.title}
-                          width={100}
-                          height={75}
-                          className="rounded-lg object-cover aspect-[4/3]"
+                                        width={100}
+                                        height={75}
+                                        className="rounded-lg object-cover aspect-[4/3]"
                           data-ai-hint={placeholderImage.imageHint}
-                        />
+                                    />
                       ) : (
                         <div className="w-[100px] h-[75px] bg-muted rounded-lg flex items-center justify-center">
                           <Heart className="h-6 w-6 text-muted-foreground" />
                         </div>
-                      )}
-                    </Link>
+                                )}
+                                </Link>
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {getItemIcon(item.type)}
@@ -348,8 +366,8 @@ export default function FavoritesPage() {
                           <h3 className="font-bold hover:underline truncate">
                             {item.title}
                           </h3>
-                        </Link>
-                      </div>
+                                     </Link>
+                                    </div>
                       {item.type === 'vehicle' && (
                         <p className="text-sm text-muted-foreground">
                           {item.make} {item.model} {item.year && `- ${item.year}`}
@@ -369,7 +387,7 @@ export default function FavoritesPage() {
                         ${item.price?.toLocaleString()}
                         {item.type === 'rental' && <span className="text-xs">/jour</span>}
                       </p>
-                    </div>
+                                </div>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -380,15 +398,15 @@ export default function FavoritesPage() {
                       {removingId === item.id ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
-                        <Trash2 className="h-5 w-5" />
+                                    <Trash2 className="h-5 w-5" />
                       )}
-                      <span className="sr-only">Supprimer des favoris</span>
-                    </Button>
-                  </CardContent>
-                </Card>
+                                    <span className="sr-only">Supprimer des favoris</span>
+                                </Button>
+                            </CardContent>
+                        </Card>
               );
-            })}
-          </div>
+                })}
+            </div>
         )}
       </main>
     </div>

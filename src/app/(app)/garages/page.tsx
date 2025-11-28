@@ -347,12 +347,17 @@ export default function GaragesPage() {
             lng: position.coords.longitude,
           });
           setShowLocationPrompt(false);
+          // Automatically show route dialog if a garage is selected
+          if (selectedGarage) {
+            setShowTransportDialog(true);
+          }
         },
         (error) => {
           toast({
             variant: 'destructive',
             title: 'Erreur de localisation',
             description: 'Impossible d\'obtenir votre position. Veuillez activer la localisation dans les paramètres.',
+            duration: 3000,
           });
         }
       );
@@ -366,12 +371,17 @@ export default function GaragesPage() {
               lng: position.coords.longitude,
             });
             setShowLocationPrompt(false);
+            // Automatically show route dialog if a garage is selected
+            if (selectedGarage) {
+              setShowTransportDialog(true);
+            }
           },
           (error) => {
             toast({
               variant: 'destructive',
               title: 'Erreur de localisation',
               description: 'Impossible d\'obtenir votre position.',
+              duration: 3000,
             });
           }
         );
@@ -867,14 +877,6 @@ export default function GaragesPage() {
                         {navigationData.remainingDistance < 1000
                           ? `${Math.round(navigationData.remainingDistance)} m`
                           : `${(navigationData.remainingDistance / 1000).toFixed(1)} km`}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Temps estimé</span>
-                      <span className="font-bold text-lg text-accent">
-                        {navigationData.remainingDuration < 60
-                          ? `${Math.round(navigationData.remainingDuration)} sec`
-                          : `${Math.round(navigationData.remainingDuration / 60)} min`}
                       </span>
                     </div>
                   </div>

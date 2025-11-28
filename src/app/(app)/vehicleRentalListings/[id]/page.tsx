@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -166,12 +166,18 @@ export default function RentalDetailsPage() {
           });
         }
         setIsFavorite(false);
-        toast({ title: 'Retiré des favoris' });
+        toast({ 
+          title: 'Retiré des favoris',
+          duration: 2000,
+        });
       } else {
         if (favSnap.exists()) {
+          const currentData = favSnap.data();
+          // Ensure rentalIds array exists
+          const currentRentalIds = currentData.rentalIds || [];
           await updateDoc(favDocRef, {
             rentalIds: arrayUnion(rentalId),
-            updatedAt: new Date(),
+            updatedAt: serverTimestamp(),
           });
         } else {
           await setDoc(favDocRef, {
@@ -179,12 +185,15 @@ export default function RentalDetailsPage() {
             rentalIds: [rentalId],
             vehicleIds: [],
             partIds: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
           });
         }
         setIsFavorite(true);
-        toast({ title: 'Ajouté aux favoris ❤️' });
+        toast({ 
+          title: 'Ajouté aux favoris ❤️',
+          duration: 2000,
+        });
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);

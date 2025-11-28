@@ -321,66 +321,61 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-primary/10 via-background/90 to-accent/10 border-b border-primary/20 shadow-lg">
         <div className="p-4 pb-3">
         <div className="flex items-center justify-between">
-            <button
-              onClick={() => {
-                if (permissionStatus === 'denied' || permissionStatus === 'prompt') {
+            {permissionStatus === 'granted' && location ? (
+              <div className="flex items-center gap-2 group transition-all duration-300">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
+                  <MapPin className="h-4 w-4 text-primary animate-pulse" style={{ animationDuration: '2s' }} />
+                </div>
+                <div className="flex flex-col items-start min-w-0">
+                  <span className="font-medium text-sm bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate max-w-[150px]">
+                    {location.city}, {location.country}
+                  </span>
+                  {currentTime && (
+                    <span className="text-xs text-primary/70 font-medium">
+                      {currentTime}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
                   if (permissionStatus === 'denied') {
                     toast({
                       variant: 'destructive',
                       title: 'Localisation refusée',
                       description: 'Veuillez autoriser l\'accès à votre localisation dans les paramètres de votre navigateur',
+                      duration: 3000,
                     });
                   } else {
                     toast({
                       title: 'Demande de localisation',
                       description: 'Veuillez autoriser l\'accès à votre localisation',
+                      duration: 3000,
                     });
                   }
                   requestLocation();
-                }
-              }}
-              className={cn(
-                "flex items-center gap-2 group transition-all duration-300",
-                (permissionStatus === 'denied' || permissionStatus === 'prompt') && "cursor-pointer hover:opacity-80",
-                isLocationLoading && "opacity-70 cursor-wait"
-              )}
-              disabled={isLocationLoading}
-            >
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-300 border border-primary/30">
-                {isLocationLoading ? (
-                  <Loader2 className="h-4 w-4 text-primary animate-spin" />
-                ) : (
-                  <MapPin className={cn(
-                    "h-4 w-4",
-                    permissionStatus === 'granted' && location 
-                      ? "text-primary animate-pulse" 
-                      : "text-primary/70"
-                  )} style={{ animationDuration: '2s' }} />
+                }}
+                className={cn(
+                  "flex items-center gap-2 group transition-all duration-300 cursor-pointer hover:opacity-80",
+                  isLocationLoading && "opacity-70 cursor-wait"
                 )}
-              </div>
-              <div className="flex flex-col items-start min-w-0">
-                {permissionStatus === 'granted' && location ? (
-                  <>
-                    <span className="font-medium text-sm bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate max-w-[150px]">
-                      {location.city}, {location.country}
-                    </span>
-                    {currentTime && (
-                      <span className="text-xs text-primary/70 font-medium">
-                        {currentTime}
-                      </span>
-                    )}
-                  </>
-                ) : permissionStatus === 'denied' ? (
-                  <span className="font-medium text-sm text-primary/70">
-                    Partager votre localisation
-                  </span>
-                ) : (
+                disabled={isLocationLoading}
+              >
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-300 border border-primary/30">
+                  {isLocationLoading ? (
+                    <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                  ) : (
+                    <MapPin className="h-4 w-4 text-primary/70" />
+                  )}
+                </div>
+                <div className="flex flex-col items-start min-w-0">
                   <span className="font-medium text-sm text-primary/70">
                     {isLocationLoading ? 'Chargement...' : 'Partager votre localisation'}
                   </span>
-                )}
-           </div>
-            </button>
+                </div>
+              </button>
+            )}
            <div className="flex items-center gap-3">
               <Link href="/notifications" className="relative group">
                 <Button 

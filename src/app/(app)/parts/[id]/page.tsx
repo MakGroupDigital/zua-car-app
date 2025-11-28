@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -164,24 +164,34 @@ export default function PartDetailsPage() {
           });
         }
         setIsFavorite(false);
-        toast({ title: 'Retiré des favoris' });
+        toast({ 
+          title: 'Retiré des favoris',
+          duration: 2000,
+        });
       } else {
         if (favSnap.exists()) {
+          const currentData = favSnap.data();
+          // Ensure partIds array exists
+          const currentPartIds = currentData.partIds || [];
           await updateDoc(favDocRef, {
             partIds: arrayUnion(partId),
-            updatedAt: new Date(),
+            updatedAt: serverTimestamp(),
           });
         } else {
           await setDoc(favDocRef, {
             userId: user.uid,
             partIds: [partId],
             vehicleIds: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            rentalIds: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
           });
         }
         setIsFavorite(true);
-        toast({ title: 'Ajouté aux favoris ❤️' });
+        toast({ 
+          title: 'Ajouté aux favoris ❤️',
+          duration: 2000,
+        });
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);

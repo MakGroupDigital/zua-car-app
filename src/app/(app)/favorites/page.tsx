@@ -52,15 +52,21 @@ export default function FavoritesPage() {
         const favSnap = await getDoc(favDocRef);
 
         if (!favSnap.exists()) {
+          console.log('No favorites document found for user:', user.uid);
           setFavorites([]);
           setIsLoading(false);
           return;
         }
 
         const favData = favSnap.data();
+        console.log('Favorites data:', favData);
         const vehicleIds: string[] = favData.vehicleIds || [];
         const partIds: string[] = favData.partIds || [];
         const rentalIds: string[] = favData.rentalIds || [];
+        
+        console.log('Vehicle IDs:', vehicleIds);
+        console.log('Part IDs:', partIds);
+        console.log('Rental IDs:', rentalIds);
 
         const allFavorites: FavoriteItem[] = [];
 
@@ -142,14 +148,20 @@ export default function FavoritesPage() {
           ...rentals.filter((r): r is FavoriteItem => r !== null)
         );
 
+        console.log('All favorites fetched:', allFavorites);
         setFavorites(allFavorites);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching favorites:', err);
+        console.error('Error details:', {
+          code: err?.code,
+          message: err?.message,
+          stack: err?.stack
+        });
         toast({
           variant: 'destructive',
-          title: 'Erreur',
-          description: 'Impossible de charger vos favoris',
-          duration: 3000,
+          title: 'Erreur Firebase',
+          description: err?.message || 'Impossible de charger vos favoris. Vérifiez la console pour plus de détails.',
+          duration: 5000,
         });
       } finally {
         setIsLoading(false);
@@ -253,7 +265,7 @@ export default function FavoritesPage() {
               <ArrowLeft className="h-6 w-6" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold">{translate('favorites.title', language)}</h1>
+          <h1 className="text-xl font-bold">Mes Favoris</h1>
         </header>
         <div className="flex flex-col items-center justify-center text-center py-16 px-4">
           <Heart className="h-12 w-12 text-muted-foreground mb-4" />
@@ -277,13 +289,10 @@ export default function FavoritesPage() {
             <ArrowLeft className="h-6 w-6" />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold">{translate('favorites.title', language)}</h1>
+        <h1 className="text-xl font-bold">Mes Favoris</h1>
         {favorites.length > 0 && (
           <span className="ml-auto text-sm text-muted-foreground">
-            {favorites.length} favori{favorites.length > 1 ? 's' : ''} 
-              count: favorites.length.toString(),
-              plural: favorites.length > 1 ? 's' : ''
-            })}
+            {favorites.length} favori{favorites.length > 1 ? 's' : ''}
           </span>
         )}
       </header>
@@ -291,9 +300,9 @@ export default function FavoritesPage() {
         {favorites.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
             <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">{translate('favorites.empty', language)}</h3>
+            <h3 className="text-lg font-semibold">Votre liste de favoris est vide</h3>
             <p className="text-muted-foreground mt-2 max-w-md">
-              {translate('favorites.empty.description', language)}
+              Cliquez sur l'icône en forme de cœur sur une offre pour l'ajouter ici.
             </p>
             <Link href="/vehicles">
               <Button className="mt-4">Parcourir les offres</Button>

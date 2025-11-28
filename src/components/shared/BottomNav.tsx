@@ -68,13 +68,14 @@ export function BottomNav() {
           <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-10 group">
             <Button
               onClick={() => setIsDialogOpen(true)}
+              size="icon"
               className={cn(
-                "h-16 px-4 rounded-full shadow-2xl transition-all duration-300 flex items-center gap-2",
+                "h-14 w-14 rounded-full shadow-2xl transition-all duration-300 relative overflow-hidden",
                 "bg-gradient-to-br from-accent via-accent to-accent/80",
                 "text-accent-foreground border-4 border-background",
                 "hover:from-accent/90 hover:via-accent/90 hover:to-accent/70",
                 "hover:scale-110 hover:shadow-3xl",
-                "animate-pulse hover:animate-none"
+                "animate-pulse hover:animate-none p-0"
               )}
             >
               {(() => {
@@ -82,7 +83,7 @@ export function BottomNav() {
                 if (logoImage) {
                   return (
                     <>
-                      <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      <div className="absolute inset-0">
                         <Image 
                           src={logoImage.imageUrl} 
                           alt="Logo" 
@@ -91,16 +92,20 @@ export function BottomNav() {
                           data-ai-hint={logoImage.imageHint}
                         />
                       </div>
-                      <Plus className="h-6 w-6 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+                      <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10">
+                        <Plus className="h-3 w-3 stroke-[2.5] text-white drop-shadow-lg" />
+                      </div>
                     </>
                   );
                 }
                 return (
                   <>
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm font-bold">Z</span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">Z</span>
                     </div>
-                    <Plus className="h-6 w-6 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+                    <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10">
+                      <Plus className="h-3 w-3 stroke-[2.5] text-white drop-shadow-lg" />
+                    </div>
                   </>
                 );
               })()}

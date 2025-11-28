@@ -310,74 +310,82 @@ export default function PartsPage() {
           </div>
         )}
 
-        {/* Parts List */}
+        {/* Parts Grid - Style Voitures Populaires avec scroll vertical */}
         {!isLoading && !error && parts.length > 0 && (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4 pb-4">
           {parts.map((part) => {
               const partImageUrl = part.imageUrls?.[0] || part.imageUrl;
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'part-oil-filter');
               
             return (
-              <Link key={part.id} href={`/parts/${part.id}`} passHref>
-                  <Card className="shadow-md cursor-pointer hover:shadow-lg transition-shadow border-none rounded-2xl">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className="relative w-1/3 min-w-[120px]">
-                        {partImageUrl ? (
-                          <Image
-                            src={partImageUrl}
-                            alt={part.title || part.name || 'Pièce'}
-                            width={120}
-                            height={90}
-                            className="rounded-lg w-full aspect-[4/3] object-cover"
-                          />
-                        ) : placeholderImage ? (
-                        <Image
-                            src={placeholderImage.imageUrl}
-                            alt={part.title || part.name || 'Pièce'}
-                            width={120}
-                            height={90}
-                            className="rounded-lg w-full aspect-[4/3] object-cover"
-                            data-ai-hint={placeholderImage.imageHint}
-                        />
-                        ) : (
-                          <div className="flex items-center justify-center w-full aspect-[4/3] bg-muted rounded-lg">
-                            <Wrench className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
-                    </div>
-                    <div className="flex-grow">
-                        <h3 className="font-bold text-lg truncate">{part.title || part.name}</h3>
-                      <p className="text-sm text-muted-foreground truncate">{part.compatibility}</p>
-                      
-                      {/* Seller name */}
-                      {part.userId && sellerNames[part.userId] && (
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <User className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground truncate">
-                            {sellerNames[part.userId].name}
-                          </span>
+              <Link key={part.id} href={`/parts/${part.id}`} passHref className="flex-shrink-0 w-full group">
+                  <Card className="rounded-2xl overflow-hidden shadow-md border-2 border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-card to-primary/5">
+                  <CardContent className="p-0">
+                    <div className="relative">
+                          {partImageUrl ? (
+                            <div className="relative w-full h-[180px] overflow-hidden bg-muted">
+                              <Image
+                                src={partImageUrl}
+                                alt={part.title || part.name || 'Pièce'}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : placeholderImage ? (
+                            <div className="relative w-full h-[180px] overflow-hidden bg-muted">
+                              <Image
+                                src={placeholderImage.imageUrl}
+                                alt={part.title || part.name || 'Pièce'}
+                                fill
+                                className="object-cover"
+                                data-ai-hint={placeholderImage.imageHint}
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-full h-[180px] bg-muted flex items-center justify-center">
+                              <Wrench className="h-12 w-12 text-muted-foreground opacity-50" />
+                            </div>
+                          )}
+                          {part.condition && (
+                            <span className={cn(
+                              "absolute top-3 left-3 text-xs px-2 py-1 rounded-full font-medium backdrop-blur-sm",
+                              part.condition === 'Neuf' 
+                                ? "bg-green-100/90 text-green-800" 
+                                : "bg-blue-100/90 text-blue-800"
+                            )}>
+                              {part.condition === 'Neuf' ? 'Neuf' : 'Occasion'}
+                            </span>
+                          )}
                         </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between mt-2">
-                          <p className="text-primary font-semibold text-lg">${part.price?.toLocaleString()}</p>
+                        <div className="p-4 space-y-2 bg-gradient-to-b from-card to-primary/5">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
+                                ${part.price?.toLocaleString()}
+                              </p>
+                              <h3 className="font-semibold text-base truncate text-foreground">
+                                {part.title || part.name}
+                              </h3>
+                              <p className="text-sm text-muted-foreground truncate mt-1">
+                                {part.compatibility}
+                              </p>
+                              {/* Seller name */}
+                              {part.userId && sellerNames[part.userId] && (
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <User className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground truncate">
+                                    {sellerNames[part.userId].name}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
-                            {part.condition && (
-                              <span className={cn(
-                                "text-xs px-2 py-1 rounded-full font-medium",
-                                part.condition === 'Neuf' 
-                                  ? "bg-green-100 text-green-800" 
-                                  : "bg-blue-100 text-blue-800"
-                              )}>
-                                {part.condition === 'Neuf' ? 'Neuf' : 'Occasion'}
-                              </span>
-                            )}
                             <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                               {part.category}
                             </span>
                           </div>
-                      </div>
-                    </div>
+                        </div>
                   </CardContent>
                 </Card>
               </Link>

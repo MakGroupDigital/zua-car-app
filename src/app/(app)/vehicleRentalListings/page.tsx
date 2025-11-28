@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -14,6 +14,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useSellerNames } from '@/hooks/use-seller-names';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import {
   Dialog,
   DialogContent,
@@ -256,78 +257,104 @@ export default function VehicleRentalPage() {
           </div>
         )}
 
-        {/* Vehicle List */}
+        {/* Vehicle List - Style Instagram */}
         {!isLoading && !error && filteredVehicles.length > 0 && (
-        <div className="space-y-4 pb-4">
+        <div className="flex flex-col gap-6 pb-4">
             {filteredVehicles.map((rental) => {
-              const rentalImageUrl = rental.imageUrls?.[0] || rental.imageUrl;
+              const rentalImages = rental.imageUrls || (rental.imageUrl ? [rental.imageUrl] : []);
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
               const displayTitle = rental.title || `${rental.make} ${rental.model}`;
               
               return (
-                <Link key={rental.id} href={`/vehicleRentalListings/${rental.id}`} passHref>
-                  <Card className="overflow-hidden shadow-md border-none group hover:shadow-lg transition-shadow rounded-2xl">
-                      <CardContent className="p-3 flex gap-4 items-center">
-                        <div className="relative w-2/5 min-w-[140px]">
-                        {rentalImageUrl ? (
-                          <Image
-                            src={rentalImageUrl}
-                            alt={displayTitle}
-                            width={160}
-                            height={120}
-                            className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : placeholderImage ? (
-                            <Image
-                            src={placeholderImage.imageUrl}
-                            alt={displayTitle}
-                              width={160}
-                              height={120}
-                              className="rounded-lg w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-                            data-ai-hint={placeholderImage.imageHint}
-                            />
-                        ) : (
-                          <div className="w-full aspect-[4/3] bg-muted rounded-lg flex items-center justify-center">
-                            <Car className="h-8 w-8 text-muted-foreground" />
-                          </div>
+                <Card key={rental.id} className="overflow-hidden shadow-lg border-2 border-primary/10 rounded-2xl bg-card">
+                  {/* Header avec vendeur */}
+                  <div className="p-4 flex items-center gap-3 border-b border-primary/10">
+                    {rental.userId && sellerNames[rental.userId] && (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
+                          {sellerNames[rental.userId].name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">{sellerNames[rental.userId].name}</p>
+                          {rental.location && (
+                            <p className="text-xs text-muted-foreground">📍 {rental.location}</p>
                           )}
                         </div>
-                        <div className="flex-grow w-3/5">
-                        <h3 className="font-bold text-lg truncate">{displayTitle}</h3>
-                        {rental.location && (
-                          <p className="text-xs text-muted-foreground truncate mt-1">
-                            📍 {rental.location}
-                          </p>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Carousel d'images - Scroll horizontal */}
+                  <div className="relative">
+                    {rentalImages.length > 0 ? (
+                      <Carousel className="w-full">
+                        <CarouselContent>
+                          {rentalImages.map((imageUrl, index) => (
+                            <CarouselItem key={index}>
+                              <div className="relative w-full h-[400px] bg-muted">
+                                <Image
+                                  src={imageUrl}
+                                  alt={`${displayTitle} - Image ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        {rentalImages.length > 1 && (
+                          <>
+                            <CarouselPrevious className="left-2" />
+                            <CarouselNext className="right-2" />
+                          </>
                         )}
-                        {rental.seats && (
-                          <div className="flex items-center gap-2 text-sm mt-2 text-muted-foreground">
-                            <Users className="h-4 w-4"/>
-                            <span>{rental.seats} places</span>
-                          </div>
-                        )}
-                        
-                        {/* Seller name */}
-                        {rental.userId && sellerNames[rental.userId] && (
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <User className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground truncate">
-                              {sellerNames[rental.userId].name}
-                            </span>
-                          </div>
-                        )}
-                        
-                          <div className="flex items-center justify-between mt-3">
-                          <p className="font-extrabold text-lg text-primary">
-                            ${rental.pricePerDay?.toLocaleString()}/jour
-                          </p>
-                          <Button size="sm" className="bg-primary/90" onClick={(e) => e.preventDefault()}>
-                            Louer
-                          </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                </Link>
+                      </Carousel>
+                    ) : placeholderImage ? (
+                      <div className="relative w-full h-[400px] bg-muted">
+                        <Image
+                          src={placeholderImage.imageUrl}
+                          alt={displayTitle}
+                          fill
+                          className="object-cover"
+                          data-ai-hint={placeholderImage.imageHint}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-[400px] bg-muted flex items-center justify-center">
+                        <Car className="h-16 w-16 text-muted-foreground opacity-50" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Contenu - Scroll vertical */}
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-xl">{displayTitle}</h3>
+                      <p className="font-extrabold text-xl text-primary">
+                        ${rental.pricePerDay?.toLocaleString()}/jour
+                      </p>
+                    </div>
+                    
+                    {rental.seats && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="h-4 w-4"/>
+                        <span>{rental.seats} places</span>
+                      </div>
+                    )}
+
+                    {rental.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {rental.description}
+                      </p>
+                    )}
+
+                    <Link href={`/vehicleRentalListings/${rental.id}`}>
+                      <Button className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
+                        Voir les détails
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               );
             })}
             </div>

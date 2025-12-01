@@ -137,8 +137,12 @@ export function useLocation(): UseLocationReturn {
           setPermissionStatus('granted');
           fetchLocation();
         } else if (result.state === 'denied') {
+          // Only set as denied if explicitly denied
+          // But note: on some devices, this might be "denied" by default
+          // So we'll still allow the user to try requesting
           setPermissionStatus('denied');
         } else {
+          // Default to prompt - user hasn't been asked yet
           setPermissionStatus('prompt');
         }
 
@@ -154,10 +158,12 @@ export function useLocation(): UseLocationReturn {
         });
       }).catch(() => {
         // Fallback if permissions API is not available or fails
+        // Default to prompt - we'll ask when user clicks
         setPermissionStatus('prompt');
       });
     } else {
-      // Fallback: try to get location directly to check permission
+      // Fallback: default to prompt - we'll ask when user clicks
+      // Don't assume denied, let the user try
       setPermissionStatus('prompt');
     }
   }, [fetchLocation]);
@@ -169,43 +175,45 @@ export function useLocation(): UseLocationReturn {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
+      setIsLoading(true);
+      setError(null);
 
-    // Try to get location - this will trigger permission prompt if needed
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const locationData = await reverseGeocode(latitude, longitude);
-          setLocation(locationData);
-          setPermissionStatus('granted');
-        } catch (err: any) {
-          setError(err.message || 'Erreur lors de la récupération de la localisation');
-        } finally {
+      // Always try to request location - this will trigger permission prompt if needed
+      // Don't check permission status first, as on some devices it might be "denied" by default
+      // even though the user hasn't been asked yet
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const locationData = await reverseGeocode(latitude, longitude);
+            setLocation(locationData);
+            setPermissionStatus('granted');
+          } catch (err: any) {
+            setError(err.message || 'Erreur lors de la récupération de la localisation');
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        (err) => {
           setIsLoading(false);
+          if (err.code === 1) {
+            // Permission denied - user was prompted and refused
+            setPermissionStatus('denied');
+            setError('Autorisation de localisation refusée. Veuillez l\'activer dans les paramètres de votre navigateur.');
+          } else if (err.code === 2) {
+            setError('Position non disponible');
+            setPermissionStatus('prompt'); // Keep as prompt, not denied, for position errors
+          } else {
+            setError('Erreur de géolocalisation');
+            setPermissionStatus('prompt'); // Keep as prompt for other errors
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0, // Always get fresh location
         }
-      },
-      (err) => {
-        setIsLoading(false);
-        if (err.code === 1) {
-          // Permission denied
-          setPermissionStatus('denied');
-          setError('Autorisation de localisation refusée. Veuillez l\'activer dans les paramètres de votre navigateur.');
-        } else if (err.code === 2) {
-          setError('Position non disponible');
-          setPermissionStatus('denied');
-        } else {
-          setError('Erreur de géolocalisation');
-          setPermissionStatus('prompt');
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0, // Always get fresh location
-      }
-    );
+      );
   }, [reverseGeocode]);
 
   return {

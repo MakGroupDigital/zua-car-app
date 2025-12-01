@@ -28,6 +28,13 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 
 const services = [
@@ -350,20 +357,8 @@ export default function HomePage() {
             ) : (
               <button
                 onClick={() => {
-                  if (permissionStatus === 'denied') {
-                    toast({
-                      variant: 'destructive',
-                      title: 'Localisation refusée',
-                      description: 'Veuillez autoriser l\'accès à votre localisation dans les paramètres de votre navigateur',
-                      duration: 3000,
-                    });
-                  } else {
-                    toast({
-                      title: 'Demande de localisation',
-                      description: 'Veuillez autoriser l\'accès à votre localisation',
-                      duration: 3000,
-                    });
-                  }
+                  // Always try to request location first
+                  // The hook will handle showing appropriate messages
                   requestLocation();
                 }}
                 className={cn(
@@ -405,13 +400,18 @@ export default function HomePage() {
               <Link href="/profile" className="group">
                 <div className="relative">
                   <Avatar className="h-10 w-10 border-2 border-primary shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ring-2 ring-primary/30 group-hover:ring-accent/50">
-                    {userPhotoURL && (
+                    {userPhotoURL ? (
                       <AvatarImage 
-                        src={`${userPhotoURL}?t=${Date.now()}`} 
+                        src={userPhotoURL}
                         alt="Photo de profil"
-                        key={userPhotoURL}
+                        className="object-cover"
+                        onError={(e) => {
+                          // Si l'image ne charge pas, on cache l'image et on affiche les initiales
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
                       />
-                    )}
+                    ) : null}
                     <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
                       {userInitials}
                     </AvatarFallback>
@@ -536,7 +536,14 @@ export default function HomePage() {
               </Link>
             </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: false,
+              }}
+              className="w-full -mx-4 px-4"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
               {filteredCars.map((vehicle, index) => {
                 const vehicleImageUrl = vehicle.imageUrls?.[0] || vehicle.imageUrl;
                 const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
@@ -547,10 +554,10 @@ export default function HomePage() {
                 const sellerInfo = vehicle.userId ? (sellerNames[vehicle.userId] || { name: 'Vendeur' }) : { name: 'Vendeur' };
                 
               return (
+                  <CarouselItem key={vehicle.id} className="pl-2 md:pl-4 basis-auto">
                   <Link 
                     href={`/vehicles/${vehicle.id}`} 
-                    key={vehicle.id}
-                    className="flex-shrink-0 w-[280px] group"
+                    className="flex-shrink-0 w-[280px] group block"
                   >
                     <Card className="rounded-2xl overflow-hidden shadow-md border-2 border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-card to-primary/5">
                       <CardContent className="p-0">
@@ -642,9 +649,13 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                   </Link>
+                  </CarouselItem>
               );
             })}
-          </div>
+              </CarouselContent>
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border-2" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border-2" />
+            </Carousel>
           )}
         </div>
       </main>

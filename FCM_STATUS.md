@@ -144,3 +144,4 @@ Pour que les notifications fonctionnent **même quand l'app est fermée**, vous 
 - Vérifiez que les notifications sont autorisées dans les paramètres du navigateur
 - Testez sur mobile pour une meilleure expérience
 
+

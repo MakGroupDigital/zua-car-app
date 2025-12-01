@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, X, Loader2, User } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, X, Loader2, User, Heart, MessageCircle, Share2, MoreVertical } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -26,6 +26,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Vehicle {
   id: string;
@@ -380,8 +381,8 @@ export default function VehiclesPage() {
             </div>
         </div>
 
-        {/* Vehicle List */}
-        <div className="space-y-4 pb-4">
+        {/* Vehicle Feed - Instagram Style */}
+        <div className="space-y-6 pb-4">
           {isLoading && (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
@@ -402,64 +403,96 @@ export default function VehiclesPage() {
           {vehicles.map((car) => {
               const vehicleRating = vehicleRatings[car.id] || { average: 0, count: 0 };
               const rating = vehicleRating.average || 0;
+              const sellerName = car.userId && sellerNames[car.userId] ? sellerNames[car.userId].name : 'Vendeur';
+              
+              // Get vehicle image
+              let imageUrl = car.imageUrl;
+              if (!imageUrl && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) {
+                imageUrl = car.imageUrls[0];
+              }
+              if (!imageUrl && car.imageId) {
+                const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
+                imageUrl = carImage?.imageUrl;
+              }
+              if (!imageUrl) {
+                const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
+                imageUrl = placeholderImage?.imageUrl;
+              }
               
               return (
-                <Link key={car.id} href={`/vehicles/${car.id}`} passHref>
-                    <Card className="shadow-md cursor-pointer hover:shadow-lg transition-shadow border-none rounded-2xl">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="relative w-1/3 min-w-[120px]">
-                          {(() => {
-                            let url = car.imageUrl;
-                            if (!url && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) url = car.imageUrls[0];
-                            if (url) {
-                              return (
-                                <Image src={url} alt={car.model || car.title || 'Véhicule'} width={120} height={90} className="rounded-lg w-full aspect-[4/3] object-cover" />
-                              );
-                            } else if (car.imageId) {
-                              const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
-                              if (carImage) {
-                                return (
-                                  <Image src={carImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={120} height={90} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={carImage.imageHint} />
-                                );
-                              }
-                            }
-                            const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
-                            return placeholderImage ? (
-                              <Image src={placeholderImage.imageUrl} alt={car.model || car.title || 'Véhicule'} width={120} height={90} className="rounded-lg w-full aspect-[4/3] object-cover" data-ai-hint={placeholderImage.imageHint} />
-                            ) : (
-                              <div className="flex items-center justify-center w-full aspect-[4/3] bg-muted rounded-lg text-xs text-muted-foreground">Aucune image</div>
-                            );
-                          })()}
+                <Card key={car.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+                  {/* Header with seller info */}
+                  <CardContent className="p-3 flex items-center justify-between border-b border-border">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 border-2 border-primary/20">
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {sellerName.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-sm">{sellerName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {car.make || car.brand} {car.model} {car.year && `• ${car.year}`}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                  
+                  {/* Vehicle Image */}
+                  <Link href={`/vehicles/${car.id}`} className="block">
+                    <div className="relative w-full aspect-square bg-muted">
+                      {imageUrl ? (
+                        <Image 
+                          src={imageUrl} 
+                          alt={car.title || car.model || 'Véhicule'} 
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full text-muted-foreground text-sm">
+                          Aucune image
                         </div>
-                        <div className="flex-grow">
-                          <h3 className="font-bold text-lg truncate">{car.title || car.model || 'Véhicule'}</h3>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {car.make || car.brand} {car.model} {car.year && `- ${car.year}`}
-                          </p>
-                          
-                          {/* Seller name */}
-                          {car.userId && sellerNames[car.userId] && (
-                            <div className="flex items-center gap-1.5 mt-1.5">
-                              <User className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground truncate">
-                                {sellerNames[car.userId].name}
-                              </span>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-primary font-semibold text-lg">${car.price?.toLocaleString() || '0'}</p>
-                            {vehicleRating.count > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span className="text-xs font-medium text-muted-foreground">{rating.toFixed(1)}</span>
-                              </div>
-                            )}
-                          </div>
+                      )}
+                    </div>
+                  </Link>
+                  
+                  {/* Actions */}
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Heart className="h-5 w-5" />
+                        </Button>
+                        <Link href={`/vehicles/${car.id}`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MessageCircle className="h-5 w-5" />
+                          </Button>
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Share2 className="h-5 w-5" />
+                        </Button>
+                      </div>
+                      {vehicleRating.count > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-primary text-primary" />
+                          <span className="text-xs font-medium">{rating.toFixed(1)}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                </Link>
+                      )}
+                    </div>
+                    
+                    {/* Price and Title */}
+                    <div>
+                      <Link href={`/vehicles/${car.id}`}>
+                        <p className="font-bold text-lg text-primary">${car.price?.toLocaleString() || '0'}</p>
+                        <p className="font-semibold text-sm mt-1">{car.title || `${car.make || car.brand} ${car.model}`}</p>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             })}
         </div>

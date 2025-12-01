@@ -53,23 +53,104 @@ export default function PhoneLoginPage() {
   });
   
   useEffect(() => {
-    if (auth && !window.recaptchaVerifier?.auth) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response: any) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-            },
-        });
+    if (!auth) return;
+
+    // Clean up existing verifier if it exists
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.log('Error clearing recaptcha verifier:', e);
+      }
+      window.recaptchaVerifier = undefined;
     }
-  }, [auth]);
+
+    // Wait for the container to be available
+    const initRecaptcha = () => {
+      const container = document.getElementById('recaptcha-container');
+      if (!container) {
+        // Retry after a short delay
+        setTimeout(initRecaptcha, 100);
+        return;
+      }
+
+      try {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': (response: any) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+            console.log('reCAPTCHA verified');
+          },
+          'expired-callback': () => {
+            // reCAPTCHA expired, need to re-verify
+            console.log('reCAPTCHA expired');
+            if (window.recaptchaVerifier) {
+              try {
+                window.recaptchaVerifier.clear();
+              } catch (e) {
+                console.log('Error clearing expired recaptcha:', e);
+              }
+              window.recaptchaVerifier = undefined;
+            }
+          },
+        });
+      } catch (error: any) {
+        console.error('Error initializing RecaptchaVerifier:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Erreur d\'initialisation',
+          description: 'Impossible d\'initialiser la vérification. Veuillez rafraîchir la page.',
+        });
+      }
+    };
+
+    // Initialize after a short delay to ensure DOM is ready
+    setTimeout(initRecaptcha, 100);
+
+    // Cleanup on unmount
+    return () => {
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.log('Error clearing recaptcha on unmount:', e);
+        }
+        window.recaptchaVerifier = undefined;
+      }
+    };
+  }, [auth, toast]);
 
   const onPhoneSubmit = async (values: z.infer<typeof phoneFormSchema>) => {
     setIsLoading(true);
     try {
+      // Ensure auth is available
+      if (!auth) {
+        throw new Error("Firebase Auth n'est pas initialisé.");
+      }
+
+      // Re-initialize verifier if needed
+      if (!window.recaptchaVerifier) {
+        const container = document.getElementById('recaptcha-container');
+        if (!container) {
+          throw new Error("Le conteneur reCAPTCHA n'est pas disponible.");
+        }
+
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': (response: any) => {
+            console.log('reCAPTCHA verified');
+          },
+          'expired-callback': () => {
+            console.log('reCAPTCHA expired');
+          },
+        });
+      }
+
       const verifier = window.recaptchaVerifier;
       if (!verifier) {
-        throw new Error("Recaptcha verifier not initialized.");
+        throw new Error("Recaptcha verifier n'est pas initialisé.");
       }
+
       const confirmationResult = await signInWithPhoneNumber(auth, values.phoneNumber, verifier);
       window.confirmationResult = confirmationResult;
       setShowOtpForm(true);
@@ -79,10 +160,30 @@ export default function PhoneLoginPage() {
       });
     } catch (error: any) {
       console.error("Phone Sign-In Error:", error);
+      
+      // Clean up verifier on error
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.log('Error clearing verifier on error:', e);
+        }
+        window.recaptchaVerifier = undefined;
+      }
+
+      let errorMessage = "Impossible d'envoyer le code.";
+      if (error.code === 'auth/invalid-app-credential') {
+        errorMessage = "Erreur de configuration Firebase. Veuillez vérifier que le domaine est autorisé dans la console Firebase.";
+      } else if (error.code === 'auth/invalid-phone-number') {
+        errorMessage = "Le numéro de téléphone est invalide. Veuillez utiliser le format international (ex: +243...).";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: error.message || "Impossible d'envoyer le code.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -199,7 +300,8 @@ export default function PhoneLoginPage() {
               </form>
             </Form>
           )}
-          <div id="recaptcha-container"></div>
+          {/* reCAPTCHA container - must be present in DOM */}
+          <div id="recaptcha-container" className="hidden"></div>
         </CardContent>
       </Card>
     </div>

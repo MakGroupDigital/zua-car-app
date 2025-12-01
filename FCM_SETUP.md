@@ -269,3 +269,4 @@ Une fois configuré :
 5. Créer et déployer la Cloud Function
 6. Tester les notifications push
 
+

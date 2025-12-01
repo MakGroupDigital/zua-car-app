@@ -81,3 +81,4 @@ Pour le développement local, les variables sont définies dans `src/firebase/co
 - Le code dans `src/firebase/index.ts` essaie d'abord `initializeApp()` sans arguments pour utiliser les variables d'environnement d'App Hosting
 - En cas d'échec, il utilise `firebaseConfig` de `src/firebase/config.ts` (pour le développement local)
 
+

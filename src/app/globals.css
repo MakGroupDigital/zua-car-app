@@ -43,38 +43,38 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 220 9% 5%; /* Noir profond */
-    --foreground: 0 0% 98%;
-    --card: 220 9% 8%; /* Noir avec légère teinte */
-    --card-foreground: 0 0% 98%;
-    --popover: 220 9% 8%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 210 100% 20%; /* Bleu profond */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 210 50% 20%; /* Bleu foncé */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 220 9% 12%; /* Gris très foncé */
-    --muted-foreground: 210 40% 70%;
-    --accent: 198 100% 49%; /* Bleu ciel (cyan vif) */
-    --accent-foreground: 210 50% 11%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 220 9% 8%; /* Gris foncé doux au lieu de noir pur */
+    --foreground: 0 0% 95%; /* Blanc légèrement adouci pour meilleure lisibilité */
+    --card: 220 9% 12%; /* Gris foncé pour les cartes */
+    --card-foreground: 0 0% 95%;
+    --popover: 220 9% 12%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 0% 85%; /* Gris clair au lieu de bleu */
+    --primary-foreground: 220 9% 10%; /* Foncé pour contraste */
+    --secondary: 220 9% 15%; /* Gris moyen pour secondaire */
+    --secondary-foreground: 0 0% 95%;
+    --muted: 220 9% 15%; /* Gris moyen */
+    --muted-foreground: 0 0% 70%; /* Gris clair pour texte secondaire */
+    --accent: 0 0% 75%; /* Gris moyen au lieu de cyan */
+    --accent-foreground: 220 9% 10%; /* Foncé pour contraste */
+    --destructive: 0 70% 50%; /* Rouge plus visible */
     --destructive-foreground: 0 0% 98%;
-    --border: 210 50% 25%; /* Bleu foncé pour bordures */
-    --input: 220 9% 12%;
-    --ring: 198 100% 49%; /* Bleu ciel pour focus */
-    --chart-1: 198 100% 49%; /* Bleu ciel */
-    --chart-2: 210 100% 30%; /* Bleu */
-    --chart-3: 210 80% 40%; /* Bleu moyen */
-    --chart-4: 198 80% 45%; /* Cyan */
-    --chart-5: 210 60% 35%; /* Bleu foncé */
-    --sidebar-background: 220 9% 5%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 210 100% 20%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 9% 8%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 210 50% 25%;
-    --sidebar-ring: 198 100% 49%;
+    --border: 220 9% 20%; /* Bordure plus visible */
+    --input: 220 9% 15%; /* Input plus visible */
+    --ring: 0 0% 75%; /* Ring gris pour focus */
+    --chart-1: 0 0% 75%; /* Gris */
+    --chart-2: 0 0% 70%; /* Gris */
+    --chart-3: 0 0% 65%; /* Gris */
+    --chart-4: 0 0% 60%; /* Gris */
+    --chart-5: 0 0% 55%; /* Gris */
+    --sidebar-background: 220 9% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 0% 85%;
+    --sidebar-primary-foreground: 220 9% 10%;
+    --sidebar-accent: 220 9% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 9% 20%;
+    --sidebar-ring: 0 0% 75%;
   }
 
   :root.dark {

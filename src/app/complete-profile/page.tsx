@@ -71,7 +71,7 @@ export default function CompleteProfilePage() {
 
       toast({
         title: "Profil complété !",
-        description: "Bienvenue sur Zua-Car !",
+        description: "Bienvenue sur Nzila !",
       });
       router.push('/home');
     } catch (error: any) {

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import { ServiceIcons } from '@/components/icons/ServiceIcons';
 import { Bell, Heart, Home, Search, Settings, SlidersHorizontal, Star, MessageCircle, HeartPulse, MapPin, ShoppingCart, Tag, Wrench, KeyRound, ShieldCheck, School, Loader2, X, Sparkles, Shield, Users, Building2, Fuel } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -41,13 +42,13 @@ const services = [
   { name: 'Location', icon: KeyRound, href: '/vehicleRentalListings', color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-100 dark:bg-purple-900/50', textColor: 'text-purple-600 dark:text-purple-300' },
   { name: 'Achat', icon: ShoppingCart, href: '/vehicles', color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-100 dark:bg-blue-900/50', textColor: 'text-blue-600 dark:text-blue-300' },
   { name: 'Vente', icon: Tag, href: '/dashboard/vente', color: 'from-green-500 to-emerald-500', bgColor: 'bg-green-100 dark:bg-green-900/50', textColor: 'text-green-600 dark:text-green-300' },
-  { name: 'Pièces', icon: Wrench, href: '/parts', color: 'from-yellow-500 to-amber-500', bgColor: 'bg-yellow-100 dark:bg-yellow-900/50', textColor: 'text-yellow-600 dark:text-yellow-300' },
-  { name: 'Sécurité automobile', icon: Shield, href: '/security', color: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100 dark:bg-orange-900/50', textColor: 'text-orange-600 dark:text-orange-300' },
-  { name: 'Assurance', icon: ShieldCheck, href: '/insuranceProviders', color: 'from-red-500 to-rose-500', bgColor: 'bg-red-100 dark:bg-red-900/50', textColor: 'text-red-600 dark:text-red-300' },
-  { name: 'Auto-école', icon: School, href: '/drivingSchools', color: 'from-indigo-500 to-violet-500', bgColor: 'bg-indigo-100 dark:bg-indigo-900/50', textColor: 'text-indigo-600 dark:text-indigo-300' },
-  { name: 'Conseiller automobile', icon: Users, href: '/advisors', color: 'from-teal-500 to-cyan-500', bgColor: 'bg-teal-100 dark:bg-teal-900/50', textColor: 'text-teal-600 dark:text-teal-300' },
-  { name: 'Garage', icon: Building2, href: '/garages', color: 'from-slate-500 to-gray-500', bgColor: 'bg-slate-100 dark:bg-slate-900/50', textColor: 'text-slate-600 dark:text-slate-300' },
-  { name: 'Stations', icon: Fuel, href: '/stations', color: 'from-amber-500 to-yellow-500', bgColor: 'bg-amber-100 dark:bg-amber-900/50', textColor: 'text-amber-600 dark:text-amber-300' },
+  { name: 'Pièces', icon: ServiceIcons.Parts, href: '/parts', color: 'from-yellow-500 to-amber-500', bgColor: 'bg-yellow-100 dark:bg-yellow-900/50', textColor: 'text-yellow-600 dark:text-yellow-300' },
+  { name: 'Sécurité automobile', icon: ServiceIcons.Security, href: '/security', color: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100 dark:bg-orange-900/50', textColor: 'text-orange-600 dark:text-orange-300' },
+  { name: 'Assurance', icon: ServiceIcons.Insurance, href: '/insuranceProviders', color: 'from-red-500 to-rose-500', bgColor: 'bg-red-100 dark:bg-red-900/50', textColor: 'text-red-600 dark:text-red-300' },
+  { name: 'Auto-école', icon: ServiceIcons.DrivingSchool, href: '/drivingSchools', color: 'from-indigo-500 to-violet-500', bgColor: 'bg-indigo-100 dark:bg-indigo-900/50', textColor: 'text-indigo-600 dark:text-indigo-300' },
+  { name: 'Conseiller automobile', icon: ServiceIcons.Advisor, href: '/advisors', color: 'from-teal-500 to-cyan-500', bgColor: 'bg-teal-100 dark:bg-teal-900/50', textColor: 'text-teal-600 dark:text-teal-300' },
+  { name: 'Garage', icon: ServiceIcons.Garage, href: '/garages', color: 'from-slate-500 to-gray-500', bgColor: 'bg-slate-100 dark:bg-slate-900/50', textColor: 'text-slate-600 dark:text-slate-300' },
+  { name: 'Stations', icon: ServiceIcons.Station, href: '/stations', color: 'from-amber-500 to-yellow-500', bgColor: 'bg-amber-100 dark:bg-amber-900/50', textColor: 'text-amber-600 dark:text-amber-300' },
 ];
 
 interface Vehicle {
@@ -426,6 +427,33 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="p-4 space-y-6 pb-20">
+        {/* Notification des nouvelles icônes */}
+        <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-50">
+          <div className="bg-gradient-to-r from-accent/20 via-primary/10 to-accent/20 rounded-lg p-3 border border-accent/30 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <div className="p-2 bg-gradient-to-br from-accent to-primary rounded-full">
+                  <Sparkles className="h-4 w-4 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Nouveau !</span> Icônes Nzila personnalisées
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Découvrez nos services avec des icônes modernes et uniques ✨
+                </p>
+              </div>
+              <Link 
+                href="/icons-demo" 
+                className="flex-shrink-0 text-xs font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline"
+              >
+                Voir →
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Search Bar with primary colors */}
         <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
           <div className="relative flex-grow group">
@@ -482,15 +510,43 @@ export default function HomePage() {
                     "transition-all duration-300"
                   )}>
                     <div className={cn(
-                      "flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 border-2 group-hover:scale-110",
+                      "flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 border-2 group-hover:scale-110 relative",
                       isActive 
                         ? "bg-gradient-to-br from-primary to-accent border-primary/50 shadow-lg" 
                         : "bg-gradient-to-br from-muted to-primary/5 border-primary/20 group-hover:border-primary/40 group-hover:from-primary/10 group-hover:to-accent/10"
                     )}>
-                      <Icon className={cn(
-                        "h-7 w-7 transition-colors duration-300",
-                        isActive ? "text-primary-foreground" : "text-primary/70 group-hover:text-primary"
-                      )} />
+                      {/* Badge "Nouveau" pour les icônes personnalisées */}
+                      {(Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || Icon === ServiceIcons.Insurance || 
+                        Icon === ServiceIcons.DrivingSchool || Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
+                        Icon === ServiceIcons.Station) && (
+                        <div className="absolute -top-1 -right-1 bg-gradient-to-r from-accent to-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-md border border-white/20 animate-pulse">
+                          ✨
+                        </div>
+                      )}
+                      
+                      {/* Vérifier si c'est une icône personnalisée Nzila ou une icône Lucide */}
+                      {Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || Icon === ServiceIcons.Insurance || 
+                       Icon === ServiceIcons.DrivingSchool || Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
+                       Icon === ServiceIcons.Station ? (
+                        <div className="relative">
+                          <Icon 
+                            size={28} 
+                            className={cn(
+                              "transition-all duration-300 relative z-10",
+                              isActive ? "drop-shadow-lg" : "group-hover:scale-110 group-hover:drop-shadow-md"
+                            )}
+                          />
+                          {/* Effet de lueur pour les icônes personnalisées */}
+                          {isActive && (
+                            <div className="absolute inset-0 bg-white/20 rounded-full blur-sm animate-pulse" />
+                          )}
+                        </div>
+                      ) : (
+                        <Icon className={cn(
+                          "h-7 w-7 transition-colors duration-300",
+                          isActive ? "text-primary-foreground" : "text-primary/70 group-hover:text-primary"
+                        )} />
+                      )}
                     </div>
                     <span className={cn(
                       "text-xs font-medium text-center transition-colors duration-300",
@@ -503,6 +559,65 @@ export default function HomePage() {
                 );
               })}
             </div>
+        </div>
+
+        {/* Services Nzila Highlight Section */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-250">
+          <div className="bg-gradient-to-br from-primary/10 via-card to-accent/10 rounded-2xl p-6 border-2 border-primary/20 shadow-lg backdrop-blur-sm">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+                Services Nzila Premium
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Découvrez nos services automobiles de qualité supérieure
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {services.slice(3).map((service, index) => {
+                const Icon = service.icon;
+                const isNzilaIcon = Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || 
+                                  Icon === ServiceIcons.Insurance || Icon === ServiceIcons.DrivingSchool || 
+                                  Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
+                                  Icon === ServiceIcons.Station;
+                
+                if (!isNzilaIcon) return null;
+                
+                return (
+                  <Link 
+                    href={service.href} 
+                    key={service.name}
+                    className="group"
+                  >
+                    <div className="bg-gradient-to-br from-card to-primary/5 rounded-xl p-4 border border-primary/20 hover:border-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-lg text-center">
+                      <div className="flex justify-center mb-3">
+                        <div className="p-3 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full border border-primary/30 group-hover:border-accent/50 transition-all duration-300 group-hover:scale-110">
+                          <Icon 
+                            size={24} 
+                            className="transition-all duration-300 group-hover:drop-shadow-md"
+                          />
+                        </div>
+                      </div>
+                      <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors duration-300 mb-1">
+                        {service.name}
+                      </h3>
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-primary to-accent mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            
+            <div className="text-center mt-6">
+              <Link 
+                href="/services-nav-demo" 
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm"
+              >
+                <ServiceIcons.Advisor size={16} />
+                Voir tous nos services
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Popular Cars Section with primary colors */}
@@ -657,6 +772,63 @@ export default function HomePage() {
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border-2" />
             </Carousel>
           )}
+        </div>
+
+        {/* Services Statistics Section */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
+          <div className="bg-gradient-to-br from-card via-primary/5 to-accent/5 rounded-2xl p-6 border border-primary/20 backdrop-blur-sm">
+            <h3 className="text-lg font-bold text-center mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Nzila en chiffres
+            </h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center group">
+                <div className="flex justify-center mb-2">
+                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-full border border-blue-200 group-hover:border-blue-400 transition-all duration-300">
+                    <ServiceIcons.Parts size={20} />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-primary">500+</div>
+                <div className="text-xs text-muted-foreground">Pièces disponibles</div>
+              </div>
+              
+              <div className="text-center group">
+                <div className="flex justify-center mb-2">
+                  <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-full border border-green-200 group-hover:border-green-400 transition-all duration-300">
+                    <ServiceIcons.Garage size={20} />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-primary">50+</div>
+                <div className="text-xs text-muted-foreground">Garages partenaires</div>
+              </div>
+              
+              <div className="text-center group">
+                <div className="flex justify-center mb-2">
+                  <div className="p-3 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-full border border-red-200 group-hover:border-red-400 transition-all duration-300">
+                    <ServiceIcons.Security size={20} />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-primary">24/7</div>
+                <div className="text-xs text-muted-foreground">Sécurité assurée</div>
+              </div>
+              
+              <div className="text-center group">
+                <div className="flex justify-center mb-2">
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-full border border-purple-200 group-hover:border-purple-400 transition-all duration-300">
+                    <ServiceIcons.Advisor size={20} />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-primary">1000+</div>
+                <div className="text-xs text-muted-foreground">Clients satisfaits</div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-6">
+              <p className="text-sm text-muted-foreground">
+                Rejoignez la communauté automobile la plus dynamique de RDC
+              </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>

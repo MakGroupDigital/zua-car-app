@@ -81,11 +81,11 @@ export function useFCM() {
       
       // Afficher une notification même si l'app est ouverte
       if ('Notification' in window && Notification.permission === 'granted') {
-        const notificationTitle = payload.notification?.title || 'Zua-Car';
+        const notificationTitle = payload.notification?.title || 'Nzila';
         const notificationOptions = {
           body: payload.notification?.body || 'Vous avez une nouvelle notification',
-          icon: '/icon.jpg',
-          badge: '/icon.jpg',
+          icon: '/Nzilalogo.png',
+          badge: '/Nzilalogo.png',
           tag: payload.data?.type || 'zua-car-notification',
           data: payload.data || {},
           requireInteraction: false,

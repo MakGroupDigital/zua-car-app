@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, MapPin, Navigation, X, Loader2, Car, Phone, Star, CheckCircle2, Footprints, Play, Pause, RotateCcw, Navigation2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ServicesList } from '@/components/services';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -841,6 +842,15 @@ export default function GaragesPage() {
                         )}
                       </div>
                     )}
+                    {selectedGarage.services && selectedGarage.services.length > 0 && (
+                      <div className="mb-3">
+                        <ServicesList 
+                          services={selectedGarage.services} 
+                          maxDisplay={4} 
+                          size="sm" 
+                        />
+                      </div>
+                    )}
                     {selectedGarage.phoneNumber && (
                       <div className="flex items-center gap-2 text-sm">
                         <Phone className="h-4 w-4 text-primary" />
@@ -1100,6 +1110,15 @@ export default function GaragesPage() {
                             <div className="flex items-center gap-1 mt-1">
                               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                               <span className="text-xs font-medium">{garage.rating.toFixed(1)}</span>
+                            </div>
+                          )}
+                          {garage.services && garage.services.length > 0 && (
+                            <div className="mt-2">
+                              <ServicesList 
+                                services={garage.services} 
+                                maxDisplay={2} 
+                                size="sm" 
+                              />
                             </div>
                           )}
                         </div>

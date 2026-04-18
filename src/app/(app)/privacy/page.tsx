@@ -34,7 +34,7 @@ export default function PrivacyPolicyPage() {
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">1. Introduction</h2>
                 <p className="text-muted-foreground">
-                  Zua-Car s'engage à protéger votre vie privée. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations personnelles lorsque vous utilisez notre application.
+                  Nzila s'engage à protéger votre vie privée. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations personnelles lorsque vous utilisez notre application.
                 </p>
               </section>
 
@@ -124,5 +124,6 @@ export default function PrivacyPolicyPage() {
     </div>
   );
 }
+
 
 

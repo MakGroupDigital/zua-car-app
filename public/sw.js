@@ -15,7 +15,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 const CACHE_NAME = 'zua-car-v1';
-const APP_LOGO = '/icon.jpg';
+const APP_LOGO = '/Nzilalogo.png';
 
 // Install event
 self.addEventListener('install', (event) => {

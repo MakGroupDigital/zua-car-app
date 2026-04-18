@@ -15,7 +15,7 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-const APP_LOGO = '/icon.jpg';
+const APP_LOGO = '/Nzilalogo.png';
 
 // FCM Background Message Handler (quand l'app est fermée ou en arrière-plan)
 messaging.onBackgroundMessage((payload) => {
@@ -72,5 +72,6 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
 
 

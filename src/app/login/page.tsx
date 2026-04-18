@@ -48,7 +48,7 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Connexion réussie",
-        description: "Bienvenue sur Zua-Car !",
+        description: "Bienvenue sur Nzila !",
       });
       router.push('/home');
     } catch (error: any) {
@@ -71,7 +71,7 @@ export default function LoginPage() {
             <div className="mx-auto mb-4 relative w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg">
               <Image
                 src={logoImage.imageUrl}
-                alt="Zua-Car Logo"
+                alt="Nzila Logo"
                 fill
                 className="object-cover"
                 data-ai-hint={logoImage.imageHint}
@@ -182,14 +182,14 @@ export default function LoginPage() {
 
                     toast({
                       title: "Connexion réussie",
-                      description: "Bienvenue sur Zua-Car !",
+                      description: "Bienvenue sur Nzila !",
                     });
                     router.push('/home');
                   } else {
                     // Profile exists, go to home
                     toast({
                       title: "Connexion réussie",
-                      description: "Bienvenue sur Zua-Car !",
+                      description: "Bienvenue sur Nzila !",
                     });
                     router.push('/home');
                   }

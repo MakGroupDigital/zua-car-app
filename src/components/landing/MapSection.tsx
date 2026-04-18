@@ -11,9 +11,9 @@ type MapSectionProps = {
 }
 
 const locations = [
-  { id: 'kinshasa_gombe', name: 'Zua-Car Gombe', position: { lat: -4.316, lng: 15.308 } },
-  { id: 'kinshasa_limete', name: 'Zua-Car Limete', position: { lat: -4.370, lng: 15.345 } },
-  { id: 'lubumbashi_centre', name: 'Zua-Car Lubumbashi', position: { lat: -11.660, lng: 27.479 } },
+  { id: 'kinshasa_gombe', name: 'Nzila Gombe', position: { lat: -4.316, lng: 15.308 } },
+  { id: 'kinshasa_limete', name: 'Nzila Limete', position: { lat: -4.370, lng: 15.345 } },
+  { id: 'lubumbashi_centre', name: 'Nzila Lubumbashi', position: { lat: -11.660, lng: 27.479 } },
 ];
 
 export default function MapSection({ content }: MapSectionProps) {

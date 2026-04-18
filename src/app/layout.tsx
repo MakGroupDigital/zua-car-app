@@ -35,20 +35,20 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <title>Zua-Car - Solutions Automobiles Tout-en-Un en RDC</title>
-        <meta name="description" content="Zua-Car propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo." />
+        <title>Nzila - Solutions Automobiles Tout-en-Un en RDC</title>
+        <meta name="description" content="Nzila propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         
         {/* PWA Meta Tags */}
         <meta name="theme-color" content="#003366" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Zua-Car" />
+        <meta name="apple-mobile-web-app-title" content="Nzila" />
         <meta name="mobile-web-app-capable" content="yes" />
         
         {/* Icons */}
-        <link rel="icon" href="/icon.jpg" />
-        <link rel="apple-touch-icon" href="/icon.jpg" />
+        <link rel="icon" href="/Nzilalogo.png" />
+        <link rel="apple-touch-icon" href="/Nzilalogo.png" />
         <link rel="manifest" href="/manifest.json" />
         
         {/* Fonts */}

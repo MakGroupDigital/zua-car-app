@@ -46,8 +46,8 @@ export function GlobalNotificationListener() {
               navigator.serviceWorker.ready.then((registration) => {
                 registration.showNotification(data.title || 'Nouvelle notification', {
                   body: data.body || '',
-                  icon: '/icon.jpg',
-                  badge: '/icon.jpg',
+                  icon: '/Nzilalogo.png',
+                  badge: '/Nzilalogo.png',
                   tag: data.type || 'notification',
                   data: {
                     notificationId,
@@ -74,5 +74,6 @@ export function GlobalNotificationListener() {
 
   return null;
 }
+
 
 

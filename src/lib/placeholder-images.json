@@ -2,8 +2,8 @@
   "placeholderImages": [
     {
       "id": "app-logo",
-      "description": "Zua-Car application logo",
-      "imageUrl": "https://res.cloudinary.com/dy73hzkpm/image/upload/v1763653988/unnamed_1_oj7bme.jpg",
+      "description": "Nzila application logo",
+      "imageUrl": "/Nzilalogo.png",
       "imageHint": "company logo"
     },
     {

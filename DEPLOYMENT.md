@@ -82,3 +82,4 @@ Pour le développement local, les variables sont définies dans `src/firebase/co
 - En cas d'échec, il utilise `firebaseConfig` de `src/firebase/config.ts` (pour le développement local)
 
 
+

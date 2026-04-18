@@ -88,7 +88,7 @@ export default function SignupPage() {
             <div className="mx-auto relative w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg">
               <Image
                 src={logoImage.imageUrl}
-                alt="Zua-Car Logo"
+                alt="Nzila Logo"
                 fill
                 className="object-cover"
                 data-ai-hint={logoImage.imageHint}

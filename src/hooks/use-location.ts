@@ -49,7 +49,7 @@ export function useLocation(): UseLocationReturn {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`,
         {
           headers: {
-            'User-Agent': 'Zua-Car App',
+            'User-Agent': 'Nzila App',
           },
         }
       );

@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       transaction_id: transactionId,
       amount: amount,
       currency: currency,
-      description: description || 'Abonnement GPS Zua-Car',
+      description: description || 'Abonnement GPS Nzila',
       notify_url: CINETPAY_CONFIG.notifyUrl,
       return_url: CINETPAY_CONFIG.returnUrl,
       channels: paymentMethod === 'mobile' ? 'MOBILE_MONEY' : 'CREDIT_CARD',

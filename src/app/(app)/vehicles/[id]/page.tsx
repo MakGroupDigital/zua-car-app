@@ -331,7 +331,7 @@ export default function VehicleDetailsPage() {
     const shareUrl = window.location.href;
     const shareTitle = vehicle?.title || `${vehicle?.make} ${vehicle?.model} ${vehicle?.year}`;
     const shareDescription = vehicle?.description || `${vehicle?.make} ${vehicle?.model} ${vehicle?.year} - ${vehicle?.mileage || 'Kilométrage non spécifié'}`;
-    const shareText = `🚗 ${shareTitle}\n\n💰 Prix: $${vehicle?.price?.toLocaleString()}\n📅 Année: ${vehicle?.year}\n\n${shareDescription}\n\n👉 Voir l'offre sur Zua-Car:`;
+    const shareText = `🚗 ${shareTitle}\n\n💰 Prix: $${vehicle?.price?.toLocaleString()}\n📅 Année: ${vehicle?.year}\n\n${shareDescription}\n\n👉 Voir l'offre sur Nzila:`;
     
     return { shareUrl, shareTitle, shareText, shareDescription };
   };
@@ -391,7 +391,7 @@ export default function VehicleDetailsPage() {
 
   const shareOnTwitter = () => {
     const { shareUrl, shareTitle } = getShareData();
-    const twitterText = encodeURIComponent(`🚗 ${shareTitle} à $${vehicle?.price?.toLocaleString()} sur Zua-Car!`);
+    const twitterText = encodeURIComponent(`🚗 ${shareTitle} à $${vehicle?.price?.toLocaleString()} sur Nzila!`);
     window.open(`https://twitter.com/intent/tweet?text=${twitterText}&url=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
     setShowShareDialog(false);
     toast({
@@ -413,7 +413,7 @@ export default function VehicleDetailsPage() {
 
   const shareByEmail = () => {
     const { shareUrl, shareTitle, shareText } = getShareData();
-    const subject = encodeURIComponent(`Offre Zua-Car: ${shareTitle}`);
+    const subject = encodeURIComponent(`Offre Nzila: ${shareTitle}`);
     const body = encodeURIComponent(`${shareText}\n\n${shareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     setShowShareDialog(false);

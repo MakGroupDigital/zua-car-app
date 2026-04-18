@@ -30,6 +30,18 @@ export default function Header({ content }: HeaderProps) {
               {item.label}
             </Link>
           ))}
+          <Link
+            href="/icons-demo"
+            className="font-medium text-accent/80 transition-colors hover:text-accent border border-accent/20 px-3 py-1 rounded-md hover:bg-accent/10"
+          >
+            Icônes
+          </Link>
+          <Link
+            href="/services-nav-demo"
+            className="font-medium text-primary/80 transition-colors hover:text-primary border border-primary/20 px-3 py-1 rounded-md hover:bg-primary/10"
+          >
+            Services Nav
+          </Link>
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <DropdownMenu>

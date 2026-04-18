@@ -1,5 +1,5 @@
 {
-  "name": "nextn",
+  "name": "nzila",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@genkit-ai/google-genai": "^1.20.0",
     "@genkit-ai/next": "^1.20.0",
     "@google/generative-ai": "^0.24.1",

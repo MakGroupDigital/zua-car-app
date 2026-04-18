@@ -15,7 +15,7 @@ export default function Footer({ content }: FooterProps) {
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           <div className="flex items-center space-x-2">
             <Car className="h-6 w-6 text-accent" />
-            <span className="font-bold">Zua-Car</span>
+            <span className="font-bold">Nzila</span>
           </div>
           <p className="text-sm text-muted-foreground text-center md:text-left">{content.credits}</p>
           <div className="flex gap-4">

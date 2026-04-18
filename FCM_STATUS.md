@@ -145,3 +145,4 @@ Pour que les notifications fonctionnent **même quand l'app est fermée**, vous 
 - Testez sur mobile pour une meilleure expérience
 
 
+

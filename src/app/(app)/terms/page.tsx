@@ -34,14 +34,14 @@ export default function TermsPage() {
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">1. Acceptation des conditions</h2>
                 <p className="text-muted-foreground">
-                  En utilisant l'application Zua-Car, vous acceptez d'être lié par ces termes et conditions. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.
+                  En utilisant l'application Nzila, vous acceptez d'être lié par ces termes et conditions. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.
                 </p>
               </section>
 
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">2. Description du service</h2>
                 <p className="text-muted-foreground">
-                  Zua-Car est une plateforme qui permet aux utilisateurs de :
+                  Nzila est une plateforme qui permet aux utilisateurs de :
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                   <li>Vendre et acheter des véhicules</li>
@@ -83,7 +83,7 @@ export default function TermsPage() {
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">5. Transactions</h2>
                 <p className="text-muted-foreground">
-                  Zua-Car agit uniquement comme plateforme de mise en relation. Nous ne sommes pas partie aux transactions entre utilisateurs et ne garantissons pas :
+                  Nzila agit uniquement comme plateforme de mise en relation. Nous ne sommes pas partie aux transactions entre utilisateurs et ne garantissons pas :
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                   <li>L'exactitude des descriptions d'annonces</li>
@@ -98,21 +98,21 @@ export default function TermsPage() {
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">6. Contenu utilisateur</h2>
                 <p className="text-muted-foreground">
-                  En publiant du contenu sur Zua-Car, vous accordez à Zua-Car une licence mondiale, non exclusive, gratuite pour utiliser, reproduire et afficher ce contenu dans le cadre du service.
+                  En publiant du contenu sur Nzila, vous accordez à Nzila une licence mondiale, non exclusive, gratuite pour utiliser, reproduire et afficher ce contenu dans le cadre du service.
                 </p>
               </section>
 
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">7. Propriété intellectuelle</h2>
                 <p className="text-muted-foreground">
-                  Tous les droits de propriété intellectuelle sur l'application Zua-Car, y compris mais sans s'y limiter, les logos, marques, et le code source, appartiennent à Zua-Car ou à ses concédants de licence.
+                  Tous les droits de propriété intellectuelle sur l'application Nzila, y compris mais sans s'y limiter, les logos, marques, et le code source, appartiennent à Nzila ou à ses concédants de licence.
                 </p>
               </section>
 
               <section className="space-y-3">
                 <h2 className="text-lg font-bold text-primary">8. Limitation de responsabilité</h2>
                 <p className="text-muted-foreground">
-                  Dans la mesure permise par la loi, Zua-Car ne sera pas responsable des dommages directs, indirects, accessoires ou consécutifs résultant de l'utilisation ou de l'impossibilité d'utiliser le service.
+                  Dans la mesure permise par la loi, Nzila ne sera pas responsable des dommages directs, indirects, accessoires ou consécutifs résultant de l'utilisation ou de l'impossibilité d'utiliser le service.
                 </p>
               </section>
 
@@ -154,5 +154,6 @@ export default function TermsPage() {
     </div>
   );
 }
+
 
 

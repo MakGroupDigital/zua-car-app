@@ -68,8 +68,8 @@ export async function createNotification(
           // Note: This will only show if called from the recipient's browser
           await registration.showNotification(notificationData.title, {
             body: notificationData.body,
-            icon: '/icon.jpg', // App logo
-            badge: '/icon.jpg',
+            icon: '/Nzilalogo.png', // App logo
+            badge: '/Nzilalogo.png',
             tag: notificationData.type,
             data: notificationData.data,
             requireInteraction: false,
@@ -84,8 +84,8 @@ export async function createNotification(
         if ('Notification' in window && Notification.permission === 'granted') {
           const notification = new Notification(notificationData.title, {
             body: notificationData.body,
-            icon: '/icon.jpg',
-            badge: '/icon.jpg',
+            icon: '/Nzilalogo.png',
+            badge: '/Nzilalogo.png',
             tag: notificationData.type,
             data: notificationData.data,
             requireInteraction: false,
@@ -171,8 +171,8 @@ export async function createMessageNotification(
         
         await registration.showNotification(`Nouveau message de ${senderName}`, {
           body: preview,
-          icon: '/icon.jpg',
-          badge: '/icon.jpg',
+          icon: '/Nzilalogo.png',
+          badge: '/Nzilalogo.png',
           tag: 'message',
           data: notificationData,
           requireInteraction: false,
@@ -196,8 +196,8 @@ export async function createMessageNotification(
         
         const notification = new Notification(`Nouveau message de ${senderName}`, {
           body: preview,
-          icon: '/icon.jpg',
-          badge: '/icon.jpg',
+          icon: '/Nzilalogo.png',
+          badge: '/Nzilalogo.png',
           tag: 'message',
           data: notificationData,
           requireInteraction: false,

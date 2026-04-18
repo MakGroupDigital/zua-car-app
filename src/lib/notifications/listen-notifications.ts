@@ -46,8 +46,8 @@ export function listenToNotifications(
               if (Notification.permission === 'granted') {
                 registration.showNotification(data.title || 'Nouvelle notification', {
                   body: data.body || '',
-                  icon: '/icon.jpg',
-                  badge: '/icon.jpg',
+                  icon: '/Nzilalogo.png',
+                  badge: '/Nzilalogo.png',
                   tag: data.type || 'notification',
                   data: {
                     notificationId,
@@ -76,5 +76,6 @@ export function listenToNotifications(
 
   return unsubscribe;
 }
+
 
 

@@ -1,7 +1,7 @@
 export const content = {
   en: {
     header: {
-      logo: "Zua-Car",
+      logo: "Nzila",
       nav: [
         { label: "Services", href: "#services" },
         { label: "Locations", href: "#map" },
@@ -14,7 +14,7 @@ export const content = {
     hero: {
       super: "Your Trusted Partner on the Road",
       title: "All-in-One Automotive Solutions in the DRC",
-      subtitle: "From maintenance and repairs to quality car sales, Zua-Car is with you at every turn. Experience reliability and excellence.",
+      subtitle: "From maintenance and repairs to quality car sales, Nzila is with you at every turn. Experience reliability and excellence.",
       cta: "Explore Our Services",
     },
     services: {
@@ -36,7 +36,7 @@ export const content = {
       ],
     },
     map: {
-      title: "Find a Zua-Car Center Near You",
+      title: "Find a Nzila Center Near You",
       subtitle: "We are expanding our network across the DRC to serve you better. Visit one of our locations today.",
     },
     testimonials: {
@@ -46,17 +46,17 @@ export const content = {
         {
           name: "Jean-Pierre K.",
           location: "Kinshasa",
-          quote: "The service at Zua-Car is unmatched. My car runs like new after every visit. Their team is professional and trustworthy.",
+          quote: "The service at Nzila is unmatched. My car runs like new after every visit. Their team is professional and trustworthy.",
         },
         {
           name: "Fatima N.",
           location: "Lubumbashi",
-          quote: "I bought my first car from Zua-Car, and the process was so smooth and transparent. I highly recommend them for their quality and honesty.",
+          quote: "I bought my first car from Nzila, and the process was so smooth and transparent. I highly recommend them for their quality and honesty.",
         },
         {
           name: "David M.",
           location: "Goma",
-          quote: "A reliable repair shop is hard to find. Zua-Car has been a lifesaver with their expert mechanics and fair pricing. Truly the best in town!",
+          quote: "A reliable repair shop is hard to find. Nzila has been a lifesaver with their expert mechanics and fair pricing. Truly the best in town!",
         },
       ],
     },
@@ -73,13 +73,13 @@ export const content = {
       },
     },
     footer: {
-      copyright: `© ${new Date().getFullYear()} Zua-Car. All rights reserved.`,
+      copyright: `© ${new Date().getFullYear()} Nzila. All rights reserved.`,
       credits: "Driving the future of automotive care in the DRC."
     },
   },
   fr: {
     header: {
-      logo: "Zua-Car",
+      logo: "Nzila",
       nav: [
         { label: "Services", href: "#services" },
         { label: "Emplacements", href: "#map" },
@@ -92,7 +92,7 @@ export const content = {
     hero: {
       super: "Votre Partenaire de Confiance sur la Route",
       title: "Solutions Automobiles Tout-en-Un en RDC",
-      subtitle: "De l'entretien et des réparations à la vente de voitures de qualité, Zua-Car vous accompagne à chaque instant. Découvrez la fiabilité et l'excellence.",
+      subtitle: "De l'entretien et des réparations à la vente de voitures de qualité, Nzila vous accompagne à chaque instant. Découvrez la fiabilité et l'excellence.",
       cta: "Découvrez Nos Services",
     },
     services: {
@@ -114,7 +114,7 @@ export const content = {
       ],
     },
     map: {
-      title: "Trouvez un Centre Zua-Car Près de Chez Vous",
+      title: "Trouvez un Centre Nzila Près de Chez Vous",
       subtitle: "Nous étendons notre réseau à travers la RDC pour mieux vous servir. Visitez l'un de nos centres dès aujourd'hui.",
     },
     testimonials: {
@@ -124,17 +124,17 @@ export const content = {
         {
           name: "Jean-Pierre K.",
           location: "Kinshasa",
-          quote: "Le service chez Zua-Car est inégalé. Ma voiture est comme neuve après chaque visite. Leur équipe est professionnelle et digne de confiance.",
+          quote: "Le service chez Nzila est inégalé. Ma voiture est comme neuve après chaque visite. Leur équipe est professionnelle et digne de confiance.",
         },
         {
           name: "Fatima N.",
           location: "Lubumbashi",
-          quote: "J'ai acheté ma première voiture chez Zua-Car, et le processus a été si simple et transparent. Je les recommande vivement pour leur qualité et leur honnêteté.",
+          quote: "J'ai acheté ma première voiture chez Nzila, et le processus a été si simple et transparent. Je les recommande vivement pour leur qualité et leur honnêteté.",
         },
         {
           name: "David M.",
           location: "Goma",
-          quote: "Un garage de réparation fiable est difficile à trouver. Zua-Car m'a sauvé la vie avec ses mécaniciens experts et ses prix justes. Vraiment les meilleurs en ville !",
+          quote: "Un garage de réparation fiable est difficile à trouver. Nzila m'a sauvé la vie avec ses mécaniciens experts et ses prix justes. Vraiment les meilleurs en ville !",
         },
       ],
     },
@@ -151,7 +151,7 @@ export const content = {
       },
     },
     footer: {
-      copyright: `© ${new Date().getFullYear()} Zua-Car. Tous droits réservés.`,
+      copyright: `© ${new Date().getFullYear()} Nzila. Tous droits réservés.`,
       credits: "Conduire l'avenir de l'entretien automobile en RDC."
     },
   },

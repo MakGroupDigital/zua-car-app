@@ -1,14 +1,30 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Configuration optimisée pour Nzila */
+  
+  // Build optimizations
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // Temporairement pour éviter les erreurs de build
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  
+  // Performance optimizations
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  
+  // Turbopack configuration (required for Next.js 16+)
+  turbopack: {},
+  
+  // Compression and optimization
+  compress: true,
+  poweredByHeader: false,
+  
+  // Image optimization
   images: {
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -41,6 +57,38 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  
+  // Headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ];
   },
 };
 

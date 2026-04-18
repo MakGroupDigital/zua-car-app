@@ -14,8 +14,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
-  // Turbopack configuration (required for Next.js 16+)
-  turbopack: {},
+  // Turbopack configuration (disabled temporarily due to compatibility issues)
+  // turbopack: {},
   
   // Compression and optimization
   compress: true,

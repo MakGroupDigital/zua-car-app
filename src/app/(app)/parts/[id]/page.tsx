@@ -292,8 +292,8 @@ export default function PartDetailsPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-background/80 backdrop-blur-sm p-4 flex items-center justify-between sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+      <header className="bg-background/85 backdrop-blur-xl p-4 flex items-center justify-between sticky top-[96px] z-40 shadow-sm border-b border-border/50">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
           <ArrowLeft className="h-6 w-6" />
         </Button>
         <h1 className="text-xl font-bold truncate flex-1 mx-4 text-center">
@@ -305,7 +305,7 @@ export default function PartDetailsPage() {
             size="icon"
             onClick={toggleFavorite}
             disabled={isFavoriteLoading}
-            className={cn(isFavorite && "text-red-500")}
+            className={cn("rounded-full", isFavorite && "text-destructive")}
           >
             {isFavoriteLoading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -313,7 +313,7 @@ export default function PartDetailsPage() {
               <Heart className={cn("h-6 w-6", isFavorite && "fill-current")} />
             )}
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleShare}>
+          <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full">
             <Share2 className="h-6 w-6" />
           </Button>
         </div>

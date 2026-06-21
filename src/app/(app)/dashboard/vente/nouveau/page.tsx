@@ -29,6 +29,8 @@ export default function AddVehiclePage() {
         model: '',
         year: '',
         price: '',
+        condition: '',
+        location: '',
         description: '',
     });
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -179,7 +181,7 @@ export default function AddVehiclePage() {
         console.log('handleSubmit called - User state:', { user, uid: user?.uid, isUserLoading });
 
         // Validation
-        if (!formData.make || !formData.model || !formData.year || !formData.price) {
+        if (!formData.make || !formData.model || !formData.year || !formData.price || !formData.condition || !formData.location) {
             toast({
                 variant: 'destructive',
                 title: 'Erreur',
@@ -220,6 +222,8 @@ export default function AddVehiclePage() {
                 model: formData.model,
                 year: parseInt(formData.year),
                 price: parseFloat(formData.price),
+                condition: formData.condition || null,
+                location: formData.location || null,
                 description: formData.description,
                 title: `${formData.make} ${formData.model} ${formData.year}`,
                 imageUrls: imageUrls,
@@ -313,6 +317,34 @@ export default function AddVehiclePage() {
                                         onChange={handleInputChange}
                                         min="0"
                                         step="0.01"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="condition">État *</Label>
+                                    <select
+                                        id="condition"
+                                        value={formData.condition}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, condition: e.target.value }))}
+                                        className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                                        required
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        <option value="Neuf">Neuf</option>
+                                        <option value="Très bon état">Très bon état</option>
+                                        <option value="Bon état">Bon état</option>
+                                        <option value="À réparer">À réparer</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="location">Localisation *</Label>
+                                    <Input
+                                        id="location"
+                                        placeholder="Ex: Kinshasa, Gombe"
+                                        value={formData.location}
+                                        onChange={handleInputChange}
                                         required
                                     />
                                 </div>

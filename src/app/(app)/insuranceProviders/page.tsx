@@ -70,6 +70,7 @@ interface FormData {
   email: string;
   phone: string;
   vehicleType: string;
+  usage: string;
   message: string;
 }
 
@@ -85,6 +86,7 @@ export default function InsuranceProvidersPage() {
     email: '',
     phone: '',
     vehicleType: '',
+    usage: '',
     message: '',
   });
 
@@ -118,6 +120,7 @@ export default function InsuranceProvidersPage() {
           email: formData.email,
           phone: formData.phone,
           vehicleType: formData.vehicleType,
+          usage: formData.usage,
           message: formData.message,
           status: 'pending',
           createdAt: serverTimestamp(),
@@ -135,6 +138,7 @@ export default function InsuranceProvidersPage() {
         email: '',
         phone: '',
         vehicleType: '',
+        usage: '',
         message: '',
       });
     } catch (error) {
@@ -339,6 +343,23 @@ export default function InsuranceProvidersPage() {
                 value={formData.vehicleType}
                 onChange={handleInputChange}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="usage">Usage</Label>
+              <select
+                id="usage"
+                name="usage"
+                value={formData.usage}
+                onChange={(e) => setFormData(prev => ({ ...prev, usage: e.target.value }))}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              >
+                <option value="">Sélectionner</option>
+                <option value="Personnel">Personnel</option>
+                <option value="Location">Location</option>
+                <option value="Transport professionnel">Transport professionnel</option>
+                <option value="Entreprise">Entreprise</option>
+              </select>
             </div>
             
             <div className="space-y-2">

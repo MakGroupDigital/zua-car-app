@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface FavoriteItem {
   id: string;
-  type: 'vehicle' | 'part' | 'rental';
+  type: 'vehicle' | 'rental';
   title: string;
   price: number;
   imageUrls?: string[];
@@ -22,9 +22,6 @@ interface FavoriteItem {
   make?: string;
   model?: string;
   year?: number;
-  // Part specific
-  category?: string;
-  condition?: string;
   // Rental specific
   location?: string;
   seats?: number;
@@ -61,11 +58,9 @@ export default function FavoritesPage() {
         const favData = favSnap.data();
         console.log('Favorites data:', favData);
         const vehicleIds: string[] = favData.vehicleIds || [];
-        const partIds: string[] = favData.partIds || [];
         const rentalIds: string[] = favData.rentalIds || [];
         
         console.log('Vehicle IDs:', vehicleIds);
-        console.log('Part IDs:', partIds);
         console.log('Rental IDs:', rentalIds);
 
         const allFavorites: FavoriteItem[] = [];
@@ -94,33 +89,6 @@ export default function FavoritesPage() {
             return null;
           } catch (err: any) {
             console.error(`Error fetching vehicle ${vehicleId}:`, err);
-            return null;
-          }
-        });
-
-        // Fetch parts
-        const partPromises = partIds.map(async (partId) => {
-          try {
-            const partDocRef = doc(firestore, 'parts', partId);
-            const partSnap = await getDoc(partDocRef);
-            
-            if (partSnap.exists()) {
-              const data = partSnap.data();
-              return {
-                id: partSnap.id,
-                type: 'part' as const,
-                title: data.title || data.name,
-                price: data.price,
-                imageUrls: data.imageUrls,
-                imageUrl: data.imageUrl,
-                category: data.category,
-                condition: data.condition,
-              } as FavoriteItem;
-            }
-            console.warn(`Part ${partId} does not exist`);
-            return null;
-          } catch (err: any) {
-            console.error(`Error fetching part ${partId}:`, err);
             return null;
           }
         });
@@ -154,15 +122,13 @@ export default function FavoritesPage() {
           }
         });
 
-        const [vehicles, parts, rentals] = await Promise.all([
+        const [vehicles, rentals] = await Promise.all([
           Promise.all(vehiclePromises),
-          Promise.all(partPromises),
           Promise.all(rentalPromises),
         ]);
 
         allFavorites.push(
           ...vehicles.filter((v): v is FavoriteItem => v !== null),
-          ...parts.filter((p): p is FavoriteItem => p !== null),
           ...rentals.filter((r): r is FavoriteItem => r !== null)
         );
 
@@ -204,8 +170,6 @@ export default function FavoritesPage() {
 
       if (item.type === 'vehicle') {
         updateData.vehicleIds = arrayRemove(item.id);
-      } else if (item.type === 'part') {
-        updateData.partIds = arrayRemove(item.id);
       } else if (item.type === 'rental') {
         updateData.rentalIds = arrayRemove(item.id);
       }
@@ -236,8 +200,6 @@ export default function FavoritesPage() {
   const getItemUrl = (item: FavoriteItem) => {
     if (item.type === 'vehicle') {
       return `/vehicles/${item.id}`;
-    } else if (item.type === 'part') {
-      return `/parts/${item.id}`;
     } else if (item.type === 'rental') {
       return `/vehicleRentalListings/${item.id}`;
     }
@@ -248,8 +210,6 @@ export default function FavoritesPage() {
     switch (type) {
       case 'vehicle':
         return <Car className="h-4 w-4" />;
-      case 'part':
-        return <Package className="h-4 w-4" />;
       case 'rental':
         return <KeyRound className="h-4 w-4" />;
     }
@@ -371,11 +331,6 @@ export default function FavoritesPage() {
                       {item.type === 'vehicle' && (
                         <p className="text-sm text-muted-foreground">
                           {item.make} {item.model} {item.year && `- ${item.year}`}
-                        </p>
-                      )}
-                      {item.type === 'part' && (
-                        <p className="text-sm text-muted-foreground">
-                          {item.category} {item.condition && `- ${item.condition}`}
                         </p>
                       )}
                       {item.type === 'rental' && (

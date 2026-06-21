@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
       console.error('[CinetPay Checkout] Response status:', statusCode);
       console.error('[CinetPay Checkout] Response headers:', Object.fromEntries(cinetpayResponse.headers.entries()));
       console.error('[CinetPay Checkout] Request data sent:', JSON.stringify(paymentData, null, 2));
-      console.error('[CinetPay Checkout] URL used:', successfulUrl || 'Unknown');
+      console.error('[CinetPay Checkout] URL used:', cinetpayUrl);
       
       // Si c'est un 502, suggérer de vérifier l'URL et les identifiants
       if (statusCode === 502) {
@@ -209,4 +209,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

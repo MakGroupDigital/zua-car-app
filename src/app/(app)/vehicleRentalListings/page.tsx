@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Star, Calendar, Users, Loader2, Plus, X, Car, User, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -41,6 +41,9 @@ interface Rental {
   createdAt: any;
   status?: string;
   location?: string;
+  vehicleType?: string;
+  conditions?: string;
+  isAutonexVerified?: boolean;
 }
 
 export default function VehicleRentalPage() {
@@ -50,6 +53,8 @@ export default function VehicleRentalPage() {
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
   const [seatsFilter, setSeatsFilter] = useState<number>(0);
+  const [cityFilter, setCityFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
 
   // Fetch rentals from Firebase
   const rentalsQuery = useMemoFirebase(() => {
@@ -79,7 +84,8 @@ export default function VehicleRentalPage() {
       filtered = filtered.filter(rental =>
         (rental.title || `${rental.make} ${rental.model}` || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (rental.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (rental.location || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (rental.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (rental.vehicleType || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
     }
 
@@ -93,14 +99,28 @@ export default function VehicleRentalPage() {
       filtered = filtered.filter(rental => rental.seats && rental.seats >= seatsFilter);
     }
 
-    return filtered;
-  }, [rentalsData, searchTerm, priceRange, seatsFilter]);
+    if (cityFilter) {
+      filtered = filtered.filter(rental =>
+        rental.location?.toLowerCase().includes(cityFilter.toLowerCase())
+      );
+    }
 
-  const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < 200 || seatsFilter > 0;
+    if (typeFilter) {
+      filtered = filtered.filter(rental =>
+        rental.vehicleType?.toLowerCase() === typeFilter.toLowerCase()
+      );
+    }
+
+    return filtered;
+  }, [rentalsData, searchTerm, priceRange, seatsFilter, cityFilter, typeFilter]);
+
+  const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < 200 || seatsFilter > 0 || cityFilter !== '' || typeFilter !== '';
 
   const resetFilters = () => {
     setPriceRange([0, 200]);
     setSeatsFilter(0);
+    setCityFilter('');
+    setTypeFilter('');
   };
 
   return (
@@ -174,6 +194,31 @@ export default function VehicleRentalPage() {
                 
                 <div className="space-y-4 py-4">
                   {/* Price Range */}
+                  <div className="space-y-3">
+                    <Label>Ville</Label>
+                    <Input
+                      placeholder="Kinshasa, Lubumbashi..."
+                      value={cityFilter}
+                      onChange={(e) => setCityFilter(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Type de véhicule</Label>
+                    <select
+                      value={typeFilter}
+                      onChange={(e) => setTypeFilter(e.target.value)}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    >
+                      <option value="">Tous</option>
+                      <option value="SUV">SUV</option>
+                      <option value="Berline">Berline</option>
+                      <option value="Luxe">Luxe</option>
+                      <option value="Pickup">Pickup</option>
+                      <option value="Minibus">Minibus</option>
+                    </select>
+                  </div>
+
                   <div className="space-y-3">
                     <Label>Prix par jour: ${priceRange[0]} - ${priceRange[1]}</Label>
                     <div className="flex gap-4">
@@ -275,7 +320,10 @@ export default function VehicleRentalPage() {
                           {sellerNames[rental.userId]?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-sm">{sellerNames[rental.userId]?.name || 'Utilisateur'}</p>
+                          <p className="font-semibold text-sm flex items-center gap-1">
+                            {sellerNames[rental.userId]?.name || 'Utilisateur'}
+                            {rental.isAutonexVerified && <BadgeCheck className="h-4 w-4 text-blue-500" />}
+                          </p>
                           {rental.location && (
                             <p className="text-xs text-muted-foreground">📍 {rental.location}</p>
                           )}
@@ -283,7 +331,10 @@ export default function VehicleRentalPage() {
                       </>
                     ) : (
                       <div className="flex-1">
-                        <p className="font-semibold text-sm">Loueur</p>
+                        <p className="font-semibold text-sm flex items-center gap-1">
+                          Loueur
+                          {rental.isAutonexVerified && <BadgeCheck className="h-4 w-4 text-blue-500" />}
+                        </p>
                         {rental.location && (
                           <p className="text-xs text-muted-foreground">📍 {rental.location}</p>
                         )}
@@ -340,6 +391,20 @@ export default function VehicleRentalPage() {
                       <p className="font-extrabold text-xl text-primary">
                         ${rental.pricePerDay?.toLocaleString()}/jour
                       </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {rental.isAutonexVerified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 text-xs font-medium">
+                          <BadgeCheck className="h-3 w-3" />
+                          Véhicule vérifié AUTONEX
+                        </span>
+                      )}
+                      {rental.vehicleType && (
+                        <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                          {rental.vehicleType}
+                        </span>
+                      )}
                     </div>
                     
                     {rental.seats && (

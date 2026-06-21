@@ -25,6 +25,8 @@ interface FormData {
   pricePerWeek: string;
   seats: string;
   location: string;
+  vehicleType: string;
+  conditions: string;
 }
 
 export default function NewRentalPage() {
@@ -45,6 +47,8 @@ export default function NewRentalPage() {
     pricePerWeek: '',
     seats: '',
     location: '',
+    vehicleType: '',
+    conditions: '',
   });
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -182,6 +186,10 @@ export default function NewRentalPage() {
         pricePerDay: parseFloat(formData.pricePerDay),
         seats: formData.seats ? parseInt(formData.seats) : null,
         location: formData.location || null,
+        vehicleType: formData.vehicleType || null,
+        conditions: formData.conditions || null,
+        isAutonexVerified: false,
+        verificationStatus: 'pending',
         imageUrls: imageUrls,
         createdAt: serverTimestamp(),
         status: 'active',
@@ -331,7 +339,7 @@ export default function NewRentalPage() {
               <div className="space-y-2">
                 <Label htmlFor="location" className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Localisation
+                  Ville / localisation
                 </Label>
                 <Input
                   id="location"
@@ -340,6 +348,24 @@ export default function NewRentalPage() {
                   value={formData.location}
                   onChange={handleInputChange}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="vehicleType">Type de véhicule</Label>
+                <select
+                  id="vehicleType"
+                  name="vehicleType"
+                  value={formData.vehicleType}
+                  onChange={(e) => setFormData(prev => ({ ...prev, vehicleType: e.target.value }))}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                >
+                  <option value="">Sélectionner</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Berline">Berline</option>
+                  <option value="Luxe">Luxe</option>
+                  <option value="Pickup">Pickup</option>
+                  <option value="Minibus">Minibus</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -412,6 +438,18 @@ export default function NewRentalPage() {
                   rows={4}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="conditions">Conditions de location</Label>
+                <Textarea
+                  id="conditions"
+                  name="conditions"
+                  placeholder="Ex: caution, permis obligatoire, kilométrage, restitution carburant..."
+                  value={formData.conditions}
+                  onChange={handleInputChange}
+                  rows={4}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -439,5 +477,4 @@ export default function NewRentalPage() {
     </div>
   );
 }
-
 

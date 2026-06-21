@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 
 const profileMenuItems = [
   { label: 'Modifier le profil', icon: User, href: '/profile/edit' },
+  { label: 'Mes annonces', icon: FileText, href: '/dashboard/vente' },
+  { label: 'Historique des locations', icon: FileText, href: '/profile/rentals' },
   { label: 'Réglages du compte', icon: Settings, href: '/settings' },
   { label: 'Politique de confidentialité', icon: Shield, href: '/privacy' },
   { label: 'Termes et conditions', icon: FileText, href: '/terms' },

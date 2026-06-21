@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Home, HeartPulse, MessageCircle, Settings, Plus, Tag, KeyRound } from 'lucide-react';
+import { Home, HeartPulse, MessageCircle, Plus, Tag, KeyRound, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Dialog,
   DialogContent,
@@ -17,11 +15,11 @@ import {
 } from '@/components/ui/dialog';
 
 const navItems = [
-  { href: '/home', icon: Home, label: 'Accueil' },
-  { href: '/favorites', icon: HeartPulse, label: 'Favoris' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: Settings, label: 'Réglages' },
-];
+  { href: '/home', icon: Home, label: 'Accueil', shape: 'wide' },
+  { href: '/favorites', icon: HeartPulse, label: 'Favoris', shape: 'circle' },
+  { href: '/messages', icon: MessageCircle, label: 'Chat', shape: 'circle' },
+  { href: '/profile', icon: UserRound, label: 'Profil', shape: 'wide' },
+] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -33,154 +31,117 @@ export function BottomNav() {
     router.push(href);
   };
 
-  // Séparer les items en deux groupes (2 à gauche, 2 à droite)
-  const leftItems = navItems.slice(0, 2);
-  const rightItems = navItems.slice(2);
-
   return (
     <>
-      <footer className="sticky bottom-0 bg-primary p-3 z-50 shadow-2xl border-t border-primary/20">
-        <div className="flex items-center justify-around relative">
-          {/* Items de gauche */}
-          <div className="flex items-center justify-around flex-1">
-            {leftItems.map((item) => {
+      <footer className="fixed inset-x-0 bottom-4 z-50 px-4 pointer-events-none">
+        <div className="mx-auto flex max-w-md items-center justify-between gap-2 rounded-[2rem] border border-white/50 bg-background/75 p-2 shadow-2xl shadow-primary/20 backdrop-blur-2xl pointer-events-auto">
+          <div className="flex flex-1 items-center gap-2">
+            {navItems.slice(0, 2).map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
+              const isWide = item.shape === 'wide';
+
               return (
-                <Link href={item.href} key={item.label} passHref className="flex-1">
-                  <Button
-                    variant="ghost"
+                <Link
+                  href={item.href}
+                  key={item.href}
+                  className={cn(isWide ? 'flex-[1.4]' : 'flex-none')}
+                >
+                  <div
                     className={cn(
-                      'flex flex-col items-center h-auto p-2 w-full',
-                      isActive ? 'text-primary-foreground' : 'text-primary-foreground/70',
-                      'hover:bg-primary/80 hover:text-primary-foreground transition-all duration-300'
+                      'flex items-center justify-center gap-2 transition-all duration-300',
+                      isWide ? 'h-12 rounded-full px-4' : 'h-12 w-12 rounded-full',
+                      isActive
+                        ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg'
+                        : 'bg-card/80 text-muted-foreground hover:bg-primary/10 hover:text-primary'
                     )}
                   >
-                    <Icon className="h-6 w-6" />
-                    <span className={cn('text-xs mt-1', isActive ? 'font-semibold' : 'font-normal')}>{item.label}</span>
-                  </Button>
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {isWide && <span className="text-xs font-bold">{item.label}</span>}
+                  </div>
                 </Link>
               );
             })}
           </div>
-          
-          {/* Bouton Plus au centre */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-10 group">
-            <Button
-              onClick={() => setIsDialogOpen(true)}
-              size="icon"
-              className={cn(
-                "h-14 w-14 rounded-full shadow-2xl transition-all duration-300 relative overflow-hidden",
-                "bg-gradient-to-br from-accent via-accent to-accent/80",
-                "text-accent-foreground border-4 border-background",
-                "hover:from-accent/90 hover:via-accent/90 hover:to-accent/70",
-                "hover:scale-110 hover:shadow-3xl",
-                "animate-pulse hover:animate-none p-0"
-              )}
-            >
-              {(() => {
-                const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
-                if (logoImage) {
-                  return (
-                    <>
-                      <div className="absolute inset-0">
-                        <Image 
-                          src={logoImage.imageUrl} 
-                          alt="Logo" 
-                          fill 
-                          className="object-cover"
-                          data-ai-hint={logoImage.imageHint}
-                        />
-                      </div>
-                      <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10">
-                        <Plus className="h-3 w-3 stroke-[2.5] text-white drop-shadow-lg" />
-                      </div>
-                    </>
-                  );
-                }
-                return (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                      <span className="text-white text-lg font-bold">Z</span>
-                    </div>
-                    <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10">
-                      <Plus className="h-3 w-3 stroke-[2.5] text-white drop-shadow-lg" />
-                    </div>
-                  </>
-                );
-              })()}
-            </Button>
-          </div>
 
-          {/* Items de droite */}
-          <div className="flex items-center justify-around flex-1">
-            {rightItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-                <Link href={item.href} key={item.label} passHref className="flex-1">
-              <Button
-                variant="ghost"
-                className={cn(
-                      'flex flex-col items-center h-auto p-2 w-full',
-                  isActive ? 'text-primary-foreground' : 'text-primary-foreground/70',
-                      'hover:bg-primary/80 hover:text-primary-foreground transition-all duration-300'
-                )}
-              >
-                <Icon className="h-6 w-6" />
-                <span className={cn('text-xs mt-1', isActive ? 'font-semibold' : 'font-normal')}>{item.label}</span>
-              </Button>
-            </Link>
-          );
-        })}
-          </div>
-      </div>
-    </footer>
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            size="icon"
+            className="h-16 w-16 shrink-0 rounded-[1.5rem] bg-gradient-to-br from-primary via-accent to-primary text-primary-foreground shadow-2xl shadow-primary/30 ring-4 ring-background transition-all duration-300 hover:scale-105"
+          >
+            <Plus className="h-7 w-7" />
+          </Button>
 
-      {/* Dialog pour choisir le type d'offre */}
+          <div className="flex flex-1 items-center justify-end gap-2">
+            {navItems.slice(2).map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              const isWide = item.shape === 'wide';
+
+              return (
+                <Link
+                  href={item.href}
+                  key={item.href}
+                  className={cn(isWide ? 'flex-[1.4]' : 'flex-none')}
+                >
+                  <div
+                    className={cn(
+                      'flex items-center justify-center gap-2 transition-all duration-300',
+                      isWide ? 'h-12 rounded-full px-4' : 'h-12 w-12 rounded-full',
+                      isActive
+                        ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg'
+                        : 'bg-card/80 text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {isWide && <span className="text-xs font-bold">{item.label}</span>}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </footer>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-card/95 backdrop-blur-xl border-2 border-border/50 shadow-2xl">
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-white/50 bg-card/95 shadow-2xl backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Créer une nouvelle offre
+            <DialogTitle className="text-xl font-black">
+              Créer une offre
             </DialogTitle>
             <DialogDescription>
-              Choisissez le type d'offre que vous souhaitez créer
+              Choisissez ce que vous voulez publier sur AUTONEX.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="grid grid-cols-1 gap-4 py-4">
+
+          <div className="grid grid-cols-2 gap-3 py-4">
             <Button
               onClick={() => handleOptionClick('/dashboard/vente/nouveau')}
-              className={cn(
-                "h-auto p-6 flex flex-col items-center gap-4",
-                "bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700",
-                "text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-              )}
+              className="h-36 rounded-[1.5rem] bg-gradient-to-br from-primary to-accent p-4 text-primary-foreground shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
             >
-              <div className="p-4 rounded-full bg-white/20 backdrop-blur-sm">
-                <Tag className="h-8 w-8" />
-              </div>
-              <div className="text-center">
-                <h3 className="font-bold text-lg mb-1">Vendre un véhicule</h3>
-                <p className="text-sm text-white/90">Mettez votre véhicule en vente</p>
+              <div className="flex h-full flex-col items-start justify-between text-left">
+                <div className="rounded-full bg-primary-foreground/20 p-3">
+                  <Tag className="h-7 w-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black">Vendre</h3>
+                  <p className="text-xs text-primary-foreground/85">Publier un véhicule</p>
+                </div>
               </div>
             </Button>
 
             <Button
               onClick={() => handleOptionClick('/vehicleRentalListings/nouveau')}
-              className={cn(
-                "h-auto p-6 flex flex-col items-center gap-4",
-                "bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700",
-                "text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-              )}
+              className="h-36 rounded-full bg-card p-4 text-primary shadow-xl shadow-primary/10 ring-1 ring-primary/15 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/5"
             >
-              <div className="p-4 rounded-full bg-white/20 backdrop-blur-sm">
-                <KeyRound className="h-8 w-8" />
-              </div>
-              <div className="text-center">
-                <h3 className="font-bold text-lg mb-1">Louer un véhicule</h3>
-                <p className="text-sm text-white/90">Proposez votre véhicule à la location</p>
+              <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                <div className="rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-3">
+                  <KeyRound className="h-7 w-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black">Louer</h3>
+                  <p className="text-xs text-muted-foreground">Mettre en location</p>
+                </div>
               </div>
             </Button>
           </div>

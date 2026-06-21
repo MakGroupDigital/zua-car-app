@@ -40,6 +40,8 @@ interface Vehicle {
   imageId?: string;
   brand?: string;
   userId?: string;
+  location?: string;
+  condition?: string;
 }
 
 export default function VehiclesPage() {
@@ -50,6 +52,7 @@ export default function VehiclesPage() {
     const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
     const [yearRange, setYearRange] = useState<[number, number]>([1990, new Date().getFullYear() + 1]);
+    const [locationFilter, setLocationFilter] = useState('');
     
     const firestore = useFirestore();
     const vehiclesQuery = useMemoFirebase(
@@ -101,7 +104,14 @@ export default function VehiclesPage() {
                 vehicle.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 vehicle.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                vehicle.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+                vehicle.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                vehicle.location?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        if (locationFilter) {
+            filteredVehicles = filteredVehicles.filter(vehicle =>
+                vehicle.location?.toLowerCase().includes(locationFilter.toLowerCase())
             );
         }
         
@@ -118,16 +128,18 @@ export default function VehiclesPage() {
         });
         
         return filteredVehicles;
-    }, [rawVehicles, searchTerm, selectedBrand, priceRange, yearRange]);
+    }, [rawVehicles, searchTerm, selectedBrand, priceRange, yearRange, locationFilter]);
 
     const hasActiveFilters = selectedBrand !== null || 
       priceRange[0] > 0 || priceRange[1] < 100000 || 
-      yearRange[0] > 1990 || yearRange[1] < (new Date().getFullYear() + 1);
+      yearRange[0] > 1990 || yearRange[1] < (new Date().getFullYear() + 1) ||
+      locationFilter !== '';
 
     const resetFilters = () => {
       setSelectedBrand(null);
       setPriceRange([0, 100000]);
       setYearRange([1990, new Date().getFullYear() + 1]);
+      setLocationFilter('');
       toast({
         title: 'Filtres réinitialisés',
         description: 'Tous les filtres ont été supprimés',
@@ -210,6 +222,15 @@ export default function VehiclesPage() {
                   </DialogHeader>
                   
                   <div className="space-y-6 py-4">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Localisation</Label>
+                      <Input
+                        placeholder="Kinshasa, Lubumbashi..."
+                        value={locationFilter}
+                        onChange={(e) => setLocationFilter(e.target.value)}
+                      />
+                    </div>
+
                     {/* Price Range */}
                     <div className="space-y-3">
                       <Label className="text-sm font-medium">
@@ -433,6 +454,7 @@ export default function VehiclesPage() {
                         <p className="font-semibold text-sm">{sellerName}</p>
                         <p className="text-xs text-muted-foreground">
                           {car.make || car.brand} {car.model} {car.year && `• ${car.year}`}
+                          {car.location && ` • ${car.location}`}
                         </p>
                       </div>
                     </div>
@@ -489,6 +511,18 @@ export default function VehiclesPage() {
                       <Link href={`/vehicles/${car.id}`}>
                         <p className="font-bold text-lg text-primary">${car.price?.toLocaleString() || '0'}</p>
                         <p className="font-semibold text-sm mt-1">{car.title || `${car.make || car.brand} ${car.model}`}</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {car.condition && (
+                            <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                              {car.condition}
+                            </span>
+                          )}
+                          {car.location && (
+                            <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                              {car.location}
+                            </span>
+                          )}
+                        </div>
                       </Link>
                     </div>
                   </CardContent>

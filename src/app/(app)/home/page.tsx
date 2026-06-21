@@ -438,7 +438,7 @@ export default function HomePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">
-                  <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Nouveau !</span> Icônes Nzila personnalisées
+                  <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Nouveau !</span> Icônes AUTONEX personnalisées
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Découvrez nos services avec des icônes modernes et uniques ✨
@@ -524,7 +524,7 @@ export default function HomePage() {
                         </div>
                       )}
                       
-                      {/* Vérifier si c'est une icône personnalisée Nzila ou une icône Lucide */}
+                      {/* Vérifier si c'est une icône personnalisée AUTONEX ou une icône Lucide */}
                       {Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || Icon === ServiceIcons.Insurance || 
                        Icon === ServiceIcons.DrivingSchool || Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
                        Icon === ServiceIcons.Station ? (
@@ -576,12 +576,12 @@ export default function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {services.slice(3).map((service, index) => {
                 const Icon = service.icon;
-                const isNzilaIcon = Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || 
+                const isAutonexIcon = Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || 
                                   Icon === ServiceIcons.Insurance || Icon === ServiceIcons.DrivingSchool || 
                                   Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
                                   Icon === ServiceIcons.Station;
                 
-                if (!isNzilaIcon) return null;
+                if (!isAutonexIcon) return null;
                 
                 return (
                   <Link 
@@ -778,7 +778,7 @@ export default function HomePage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
           <div className="bg-gradient-to-br from-card via-primary/5 to-accent/5 rounded-2xl p-6 border border-primary/20 backdrop-blur-sm">
             <h3 className="text-lg font-bold text-center mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Nzila en chiffres
+              AUTONEX en chiffres
             </h3>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

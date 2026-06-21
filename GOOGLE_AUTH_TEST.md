@@ -1,4 +1,4 @@
-# 🔍 Test de l'Authentification Google - Nzila
+# 🔍 Test de l'Authentification Google - AUTONEX
 
 ## ✅ **Statut: AUTHENTIFICATION GOOGLE ACTIVE**
 
@@ -82,7 +82,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=zua-car
 
       toast({
         title: "Connexion réussie",
-        description: "Bienvenue sur Nzila !",
+        description: "Bienvenue sur AUTONEX !",
       });
       router.push('/home');
     } catch (error: any) {

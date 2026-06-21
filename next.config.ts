@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* Configuration optimisée pour Nzila */
+  /* Configuration optimisée pour AUTONEX */
   
   // Build optimizations
   typescript: {

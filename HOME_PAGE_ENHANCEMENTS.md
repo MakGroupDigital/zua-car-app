@@ -1,11 +1,11 @@
-# Améliorations de la Page d'Accueil Nzila
+# Améliorations de la Page d'Accueil AUTONEX
 
 ## 🎨 **Intégration des Icônes Personnalisées**
 
 ### ✅ **Modifications apportées à `/home` :**
 
 #### 1. **Section Catégories de Services**
-- ✅ **Remplacement des icônes Lucide** par nos **icônes Nzila personnalisées**
+- ✅ **Remplacement des icônes Lucide** par nos **icônes AUTONEX personnalisées**
 - ✅ **Services avec nouvelles icônes** :
   - 🔧 **Pièces** → `ServiceIcons.Parts`
   - 🛡️ **Sécurité automobile** → `ServiceIcons.Security`
@@ -19,9 +19,9 @@
 - ✅ **Badge "Nouveau" (✨)** sur les services avec icônes personnalisées
 - ✅ **Effets de lueur** et **drop-shadow** pour les icônes actives
 - ✅ **Animations hover** avec scale et transitions fluides
-- ✅ **Dégradés de couleurs** selon la charte Nzila
+- ✅ **Dégradés de couleurs** selon la charte AUTONEX
 
-#### 3. **Nouvelle Section "Services Nzila Premium"**
+#### 3. **Nouvelle Section "Services AUTONEX Premium"**
 - ✅ **Mise en valeur** des services avec icônes personnalisées
 - ✅ **Design moderne** avec dégradés et bordures animées
 - ✅ **Grid responsive** (2 colonnes mobile, 4 colonnes desktop)
@@ -33,7 +33,7 @@
 - ✅ **Lien direct** vers la page de démonstration des icônes
 
 #### 5. **Section Statistiques**
-- ✅ **Chiffres clés de Nzila** avec nos icônes personnalisées
+- ✅ **Chiffres clés d'AUTONEX** avec nos icônes personnalisées
 - ✅ **Grid responsive** avec animations hover
 - ✅ **Couleurs thématiques** pour chaque statistique
 - ✅ **Message d'engagement** communautaire
@@ -47,7 +47,7 @@
  Icon === ServiceIcons.Insurance || Icon === ServiceIcons.DrivingSchool || 
  Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
  Icon === ServiceIcons.Station ? (
-  // Rendu pour icônes personnalisées Nzila
+  // Rendu pour icônes personnalisées AUTONEX
   <Icon size={28} className="..." />
 ) : (
   // Rendu pour icônes Lucide standard
@@ -70,14 +70,14 @@
 
 ### **Découvrabilité**
 1. **Badge "Nouveau"** attire l'attention sur les services premium
-2. **Section dédiée** met en valeur les services Nzila
+2. **Section dédiée** met en valeur les services AUTONEX
 3. **Bannière informative** explique les nouveautés
 4. **Statistiques visuelles** renforcent la confiance
 
 ### **Navigation Améliorée**
 - **Liens directs** vers chaque service
 - **Feedback visuel** immédiat au hover
-- **Cohérence** avec la charte graphique Nzila
+- **Cohérence** avec la charte graphique AUTONEX
 - **Accessibilité** préservée avec les transitions
 
 ### **Engagement**
@@ -116,7 +116,7 @@
 ## 🎉 **Résultat Final**
 
 La page d'accueil `/home` présente maintenant :
-- **7 services** avec icônes Nzila personnalisées
+- **7 services** avec icônes AUTONEX personnalisées
 - **Design moderne** et cohérent avec la marque
 - **Expérience utilisateur** améliorée et engageante
 - **Performance optimale** et responsive design
@@ -126,4 +126,4 @@ La page d'accueil `/home` présente maintenant :
 
 ---
 
-**Développé pour Nzila** - L'avenir de l'automobile en RDC 🚗✨
+**Développé pour AUTONEX** - L'avenir de l'automobile en RDC 🚗✨

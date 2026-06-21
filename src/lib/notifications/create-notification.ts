@@ -68,7 +68,7 @@ export async function createNotification(
           // Note: This will only show if called from the recipient's browser
           await registration.showNotification(notificationData.title, {
             body: notificationData.body,
-            icon: '/Nzilalogo.png', // App logo
+            icon: '/Nzilalogo.png', // AUTONEX logo
             badge: '/Nzilalogo.png',
             tag: notificationData.type,
             data: notificationData.data,

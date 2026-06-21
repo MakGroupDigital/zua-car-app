@@ -236,7 +236,7 @@ export default function PartDetailsPage() {
   const handleShare = async () => {
     const shareData = {
       title: part?.title || part?.name || 'Pièce détachée',
-      text: `${part?.title || part?.name} - $${part?.price?.toLocaleString()} sur Nzila`,
+      text: `${part?.title || part?.name} - $${part?.price?.toLocaleString()} sur AUTONEX`,
       url: typeof window !== 'undefined' ? window.location.href : '',
     };
 
@@ -520,7 +520,7 @@ export default function PartDetailsPage() {
               variant="outline"
               className="flex-1"
               onClick={() => {
-                window.open(`https://wa.me/?text=${encodeURIComponent(`${part.title || part.name} - $${part.price} sur Nzila: ${window.location.href}`)}`, '_blank');
+                window.open(`https://wa.me/?text=${encodeURIComponent(`${part.title || part.name} - $${part.price} sur AUTONEX: ${window.location.href}`)}`, '_blank');
               }}
             >
               WhatsApp

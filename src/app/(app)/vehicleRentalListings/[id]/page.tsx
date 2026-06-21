@@ -238,7 +238,7 @@ export default function RentalDetailsPage() {
   const handleShare = async () => {
     const shareData = {
       title: rental?.title || `${rental?.make} ${rental?.model}` || 'Véhicule de location',
-      text: `${rental?.title || `${rental?.make} ${rental?.model}`} - $${rental?.pricePerDay}/jour sur Nzila`,
+      text: `${rental?.title || `${rental?.make} ${rental?.model}`} - $${rental?.pricePerDay}/jour sur AUTONEX`,
       url: typeof window !== 'undefined' ? window.location.href : '',
     };
 
@@ -537,7 +537,7 @@ export default function RentalDetailsPage() {
               variant="outline"
               className="flex-1"
               onClick={() => {
-                window.open(`https://wa.me/?text=${encodeURIComponent(`${displayTitle} - $${rental.pricePerDay}/jour sur Nzila: ${window.location.href}`)}`, '_blank');
+                window.open(`https://wa.me/?text=${encodeURIComponent(`${displayTitle} - $${rental.pricePerDay}/jour sur AUTONEX: ${window.location.href}`)}`, '_blank');
               }}
             >
               WhatsApp

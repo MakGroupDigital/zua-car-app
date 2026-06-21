@@ -35,15 +35,15 @@ export default function ClientLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <title>Nzila - Solutions Automobiles Tout-en-Un en RDC</title>
-        <meta name="description" content="Nzila propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo." />
+        <title>AUTONEX - Solutions Automobiles Tout-en-Un en RDC</title>
+        <meta name="description" content="AUTONEX propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         
         {/* PWA Meta Tags */}
         <meta name="theme-color" content="#003366" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Nzila" />
+        <meta name="apple-mobile-web-app-title" content="AUTONEX" />
         <meta name="mobile-web-app-capable" content="yes" />
         
         {/* Icons */}

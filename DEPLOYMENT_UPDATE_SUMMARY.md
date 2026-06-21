@@ -1,4 +1,4 @@
-# 🚀 Mise à Jour du Déploiement Nzila
+# 🚀 Mise à Jour du Déploiement AUTONEX
 
 ## ✅ **Déploiement Optimisé avec Succès !**
 
@@ -65,7 +65,7 @@ export const isFirebaseConfigValid = () => {
 ```typescript
 // src/lib/metadata.ts
 export const defaultMetadata: Metadata = {
-  title: 'Nzila - Solutions Automobiles Tout-en-Un en RDC',
+  title: 'AUTONEX - Solutions Automobiles Tout-en-Un en RDC',
   openGraph: { /* Configuration complète */ },
   twitter: { /* Configuration complète */ }
 };
@@ -192,16 +192,16 @@ export const reportWebVitals = (metric) => {
 
 ## 🎉 **Résultat Final**
 
-**L'application Nzila est maintenant optimisée pour la production avec :**
+**L'application AUTONEX est maintenant optimisée pour la production avec :**
 
 - 🚀 **Performance maximale** (build 59s)
 - 🛡️ **Sécurité renforcée** (headers, validation)
 - 📈 **SEO optimisé** (métadonnées complètes)
 - 🔧 **Configuration robuste** (fallbacks, error handling)
 - 📱 **Compatibilité étendue** (PWA, mobile)
-- 🎨 **Icônes Nzila** parfaitement intégrées
+- 🎨 **Icônes AUTONEX** parfaitement intégrées
 
-**🎊 Le déploiement Nzila est maintenant prêt pour une utilisation en production à grande échelle !**
+**🎊 Le déploiement AUTONEX est maintenant prêt pour une utilisation en production à grande échelle !**
 
 ---
 

@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 
 export const defaultMetadata: Metadata = {
   title: {
-    default: 'Nzila - Solutions Automobiles Tout-en-Un en RDC',
-    template: '%s | Nzila'
+    default: 'AUTONEX - Solutions Automobiles Tout-en-Un en RDC',
+    template: '%s | AUTONEX'
   },
-  description: 'Nzila propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo.',
+  description: 'AUTONEX propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo.',
   keywords: [
     'automobile',
     'voiture',
@@ -19,17 +19,17 @@ export const defaultMetadata: Metadata = {
     'auto-école',
     'sécurité automobile',
     'stations-service',
-    'Nzila'
+    'AUTONEX'
   ],
-  authors: [{ name: 'Nzila Team' }],
-  creator: 'Nzila',
-  publisher: 'Nzila',
+  authors: [{ name: 'AUTONEX Team' }],
+  creator: 'AUTONEX',
+  publisher: 'AUTONEX',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://nzila.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://autonex.vercel.app'),
   alternates: {
     canonical: '/',
     languages: {
@@ -41,24 +41,24 @@ export const defaultMetadata: Metadata = {
     type: 'website',
     locale: 'fr_CD',
     url: '/',
-    title: 'Nzila - Solutions Automobiles Tout-en-Un en RDC',
-    description: 'Découvrez Nzila, votre partenaire automobile de confiance en République Démocratique du Congo.',
-    siteName: 'Nzila',
+    title: 'AUTONEX - Solutions Automobiles Tout-en-Un en RDC',
+    description: 'Découvrez AUTONEX, votre partenaire automobile de confiance en République Démocratique du Congo.',
+    siteName: 'AUTONEX',
     images: [
       {
         url: '/Nzilalogo.png',
         width: 1200,
         height: 630,
-        alt: 'Nzila - Solutions Automobiles',
+        alt: 'AUTONEX - Solutions Automobiles',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nzila - Solutions Automobiles Tout-en-Un en RDC',
-    description: 'Découvrez Nzila, votre partenaire automobile de confiance en République Démocratique du Congo.',
+    title: 'AUTONEX - Solutions Automobiles Tout-en-Un en RDC',
+    description: 'Découvrez AUTONEX, votre partenaire automobile de confiance en République Démocratique du Congo.',
     images: ['/Nzilalogo.png'],
-    creator: '@nzila_rdc',
+    creator: '@autonex_rdc',
   },
   robots: {
     index: true,

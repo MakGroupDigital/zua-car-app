@@ -14,6 +14,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
 import { useSellerNames } from '@/hooks/use-seller-names';
 import { cn } from '@/lib/utils';
+import { getListingPrimaryImage } from '@/lib/listing-images';
 import {
   Dialog,
   DialogContent,
@@ -165,18 +166,16 @@ export default function VehiclesPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-background p-4 flex items-center gap-4 shadow-sm sticky top-0 z-20">
-        <Link href="/home" passHref>
-            <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-        </Link>
-        <h1 className="text-xl font-bold">Véhicules à Vendre</h1>
-      </header>
-      
       <main className="p-4 space-y-4">
+        <section className="rounded-[2rem] border border-white/50 bg-card/75 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+          <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-2xl font-black text-transparent">
+            Acheter un véhicule
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Recherchez par prix, marque et localisation.</p>
+        </section>
+
         {/* Search and Filter Bar */}
-        <div className="sticky top-[73px] bg-muted z-10 py-2 -mx-4 px-4">
+        <div className="py-2">
             <div className="flex items-center gap-3">
               <div className="relative flex-grow">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -426,11 +425,7 @@ export default function VehiclesPage() {
               const rating = vehicleRating.average || 0;
               const sellerName = car.userId && sellerNames[car.userId] ? sellerNames[car.userId].name : 'Vendeur';
               
-              // Get vehicle image
-              let imageUrl = car.imageUrl;
-              if (!imageUrl && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) {
-                imageUrl = car.imageUrls[0];
-              }
+              let imageUrl: string | null | undefined = getListingPrimaryImage(car, '');
               if (!imageUrl && car.imageId) {
                 const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
                 imageUrl = carImage?.imageUrl;

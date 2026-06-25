@@ -29,6 +29,7 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getListingImageUrls } from '@/lib/listing-images';
 
 interface Rental {
   id: string;
@@ -289,40 +290,20 @@ export default function RentalDetailsPage() {
     );
     }
 
-  const rentalImages = rental.imageUrls || (rental.imageUrl ? [rental.imageUrl] : []);
+  const rentalImages = getListingImageUrls(rental);
   const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
   const displayTitle = rental.title || `${rental.make} ${rental.model}`;
 
   return (
     <div className="min-h-screen bg-muted">
-        <header className="bg-background/80 backdrop-blur-sm p-4 flex items-center justify-between sticky top-0 z-10">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-        <h1 className="text-xl font-bold truncate flex-1 mx-4 text-center">
-          {displayTitle}
-        </h1>
-        <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={toggleFavorite}
-            disabled={isFavoriteLoading}
-            className={cn(isFavorite && "text-red-500")}
-          >
-            {isFavoriteLoading ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
-            ) : (
-              <Heart className={cn("h-6 w-6", isFavorite && "fill-current")} />
-            )}
-          </Button>
-          <Button variant="ghost" size="icon" onClick={handleShare}>
-                <Share2 className="h-6 w-6" />
-            </Button>
-        </div>
-        </header>
-
       <main className="pb-28">
+        <div className="px-4 pb-3">
+          <Button variant="ghost" onClick={() => router.back()} className="rounded-full bg-background/70 backdrop-blur">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+        </div>
+
         {/* Image Carousel */}
          <Carousel className="w-full bg-card">
           <CarouselContent>
@@ -366,7 +347,27 @@ export default function RentalDetailsPage() {
           {/* Main Info Card */}
             <Card className="shadow-lg">
                 <CardHeader>
-              <CardTitle className="text-2xl font-bold">{displayTitle}</CardTitle>
+              <div className="flex items-start justify-between gap-3">
+                <CardTitle className="text-2xl font-bold">{displayTitle}</CardTitle>
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={toggleFavorite}
+                    disabled={isFavoriteLoading}
+                    className={cn("rounded-full", isFavorite && "text-primary")}
+                  >
+                    {isFavoriteLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Heart className={cn("h-5 w-5", isFavorite && "fill-current")} />
+                    )}
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full">
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
               {rental.location && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                   <MapPin className="h-4 w-4" />

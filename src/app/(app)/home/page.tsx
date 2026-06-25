@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ServiceIcons } from '@/components/icons/ServiceIcons';
-import { Bell, Heart, Home, Search, Settings, SlidersHorizontal, Star, MessageCircle, HeartPulse, MapPin, ShoppingCart, Tag, Wrench, KeyRound, ShieldCheck, School, Loader2, X, Sparkles, Shield, Users, Building2, Fuel } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from 'next/link';
+import { Heart, Loader2, MapPin, Search, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { doc, collection, query, orderBy, limit, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, where, onSnapshot } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
-import { useLocation } from '@/hooks/use-location';
 import { useSellerNames } from '@/hooks/use-seller-names';
 import { cn } from '@/lib/utils';
+import { getListingPrimaryImage } from '@/lib/listing-images';
 import {
   Dialog,
   DialogContent,
@@ -24,101 +22,72 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-
 
 const services = [
-  { name: 'Location', icon: KeyRound, href: '/vehicleRentalListings', color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-100 dark:bg-purple-900/50', textColor: 'text-purple-600 dark:text-purple-300' },
-  { name: 'Achat', icon: ShoppingCart, href: '/vehicles', color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-100 dark:bg-blue-900/50', textColor: 'text-blue-600 dark:text-blue-300' },
-  { name: 'Vente', icon: Tag, href: '/dashboard/vente', color: 'from-green-500 to-emerald-500', bgColor: 'bg-green-100 dark:bg-green-900/50', textColor: 'text-green-600 dark:text-green-300' },
-  { name: 'Pièces', icon: ServiceIcons.Parts, href: '/parts', color: 'from-yellow-500 to-amber-500', bgColor: 'bg-yellow-100 dark:bg-yellow-900/50', textColor: 'text-yellow-600 dark:text-yellow-300' },
-  { name: 'Sécurité automobile', icon: ServiceIcons.Security, href: '/security', color: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100 dark:bg-orange-900/50', textColor: 'text-orange-600 dark:text-orange-300' },
-  { name: 'Assurance', icon: ServiceIcons.Insurance, href: '/insuranceProviders', color: 'from-red-500 to-rose-500', bgColor: 'bg-red-100 dark:bg-red-900/50', textColor: 'text-red-600 dark:text-red-300' },
-  { name: 'Auto-école', icon: ServiceIcons.DrivingSchool, href: '/drivingSchools', color: 'from-indigo-500 to-violet-500', bgColor: 'bg-indigo-100 dark:bg-indigo-900/50', textColor: 'text-indigo-600 dark:text-indigo-300' },
-  { name: 'Conseiller automobile', icon: ServiceIcons.Advisor, href: '/advisors', color: 'from-teal-500 to-cyan-500', bgColor: 'bg-teal-100 dark:bg-teal-900/50', textColor: 'text-teal-600 dark:text-teal-300' },
-  { name: 'Garage', icon: ServiceIcons.Garage, href: '/garages', color: 'from-slate-500 to-gray-500', bgColor: 'bg-slate-100 dark:bg-slate-900/50', textColor: 'text-slate-600 dark:text-slate-300' },
-  { name: 'Stations', icon: ServiceIcons.Station, href: '/stations', color: 'from-amber-500 to-yellow-500', bgColor: 'bg-amber-100 dark:bg-amber-900/50', textColor: 'text-amber-600 dark:text-amber-300' },
-];
+  { name: 'Louer', kind: 'rent', href: '/vehicleRentalListings' },
+  { name: 'Acheter', kind: 'buy', href: '/vehicles' },
+  { name: 'Vendre', kind: 'sell', href: '/dashboard/vente/nouveau' },
+  { name: 'Assurance', kind: 'insurance', href: '/insuranceProviders' },
+] as const;
 
 interface Vehicle {
   id: string;
-  title: string;
-  make: string;
-  model: string;
-  year: number;
-  price: number;
+  title?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  price?: number;
   imageUrls?: string[];
   imageUrl?: string;
   status?: string;
   userId?: string;
+  location?: string;
 }
 
+const fallbackOffers: Vehicle[] = [
+  { id: 'demo-corolla', title: 'Toyota Corolla', make: 'Toyota', model: 'Corolla', year: 2020, price: 15000, imageUrl: PlaceHolderImages.find((p) => p.id === 'car-tesla-model-3')?.imageUrl, location: 'Kinshasa' },
+  { id: 'demo-rav4', title: 'Toyota RAV4', make: 'Toyota', model: 'RAV4', year: 2021, price: 22000, imageUrl: PlaceHolderImages.find((p) => p.id === 'car-cadillac-escalade')?.imageUrl, location: 'Gombe' },
+  { id: 'demo-bmw', title: 'BMW Series 3', make: 'BMW', model: 'Series 3', year: 2020, price: 32500, imageUrl: PlaceHolderImages.find((p) => p.id === 'car-bmw-series-3')?.imageUrl, location: 'Kinshasa' },
+  { id: 'demo-escalade', title: 'Cadillac Escalade', make: 'Cadillac', model: 'Escalade', year: 2023, price: 55000, imageUrl: PlaceHolderImages.find((p) => p.id === 'car-cadillac-escalade')?.imageUrl, location: 'Lubumbashi' },
+];
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const logoImage = PlaceHolderImages.find(p => p.id === 'app-logo');
+  const logoImage = PlaceHolderImages.find((p) => p.id === 'app-logo');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [togglingFavorite, setTogglingFavorite] = useState<string | null>(null);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const { toast } = useToast();
-  const { location, currentTime, isLoading: isLocationLoading, error: locationError, permissionStatus, requestLocation } = useLocation();
-  
-  // Filter states
+
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
-  const [yearRange, setYearRange] = useState<[number, number]>([2010, 2024]);
+  const [yearRange, setYearRange] = useState<[number, number]>([2010, 2026]);
   const [selectedMake, setSelectedMake] = useState<string>('');
 
-  // Fetch popular vehicles from Firebase
   const vehiclesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(
-      collection(firestore, 'vehicles'),
-      orderBy('createdAt', 'desc'),
-      limit(6)
-    );
+    return query(collection(firestore, 'vehicles'), orderBy('createdAt', 'desc'), limit(10));
   }, [firestore]);
 
   const { data: vehicles, isLoading: isVehiclesLoading } = useCollection<Vehicle>(vehiclesQuery);
-  
-  // Get vehicle IDs for ratings
-  const vehicleIds = useMemo(() => {
-    return (vehicles || []).map(v => v.id);
-  }, [vehicles]);
-  
-  // Fetch ratings for all vehicles
+  const vehicleSource = vehicles && vehicles.length > 0 ? vehicles : fallbackOffers;
+
+  const vehicleIds = useMemo(() => vehicleSource.map((vehicle) => vehicle.id), [vehicleSource]);
   const { ratings: vehicleRatings } = useVehicleRatings(firestore, vehicleIds);
-  
-  // Get seller IDs for vehicles
-  const sellerIds = useMemo(() => {
-    return (vehicles || []).map(v => v.userId).filter(Boolean) as string[];
-  }, [vehicles]);
-  
-  // Fetch seller names
+  const sellerIds = useMemo(() => vehicleSource.map((vehicle) => vehicle.userId).filter(Boolean) as string[], [vehicleSource]);
   const { sellerNames } = useSellerNames(sellerIds);
 
-  // Fetch user's favorites
   useEffect(() => {
     const fetchFavorites = async () => {
       if (!user || !firestore) return;
-
       try {
         const favDocRef = doc(firestore, 'favorites', user.uid);
         const favSnap = await getDoc(favDocRef);
-        
         if (favSnap.exists()) {
           setFavoriteIds(favSnap.data().vehicleIds || []);
         }
@@ -126,44 +95,51 @@ export default function HomePage() {
         console.error('Error fetching favorites:', err);
       }
     };
-
     fetchFavorites();
   }, [user, firestore]);
 
-  // Listen to unread notifications count
-  useEffect(() => {
-    if (!user || !firestore) return;
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<any>(userDocRef);
 
-    const notificationsRef = collection(firestore, 'notifications');
-    const q = query(
-      notificationsRef,
-      where('userId', '==', user.uid),
-      where('read', '==', false)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setUnreadNotifications(snapshot.size);
-    }, (error) => {
-      console.error('Error fetching unread notifications:', error);
+  const filteredCars = useMemo(() => {
+    return vehicleSource.filter((vehicle) => {
+      const searchText = `${vehicle.title || ''} ${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.location || ''}`.toLowerCase();
+      const price = Number(vehicle.price || 0);
+      const year = Number(vehicle.year || 2020);
+      const matchesSearch = !searchTerm || searchText.includes(searchTerm.toLowerCase());
+      const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+      const matchesYear = year >= yearRange[0] && year <= yearRange[1];
+      const matchesMake = !selectedMake || `${vehicle.make || ''}`.toLowerCase() === selectedMake.toLowerCase();
+      return matchesSearch && matchesPrice && matchesYear && matchesMake;
     });
+  }, [vehicleSource, searchTerm, priceRange, yearRange, selectedMake]);
 
-    return () => unsubscribe();
-  }, [user, firestore]);
+  const availableMakes = useMemo(() => {
+    const makes = new Set<string>();
+    vehicleSource.forEach((vehicle) => {
+      if (vehicle.make) makes.add(vehicle.make);
+    });
+    return Array.from(makes).sort();
+  }, [vehicleSource]);
 
-  // Toggle favorite
-  const toggleFavorite = async (vehicleId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const resetFilters = () => {
+    setPriceRange([0, 100000]);
+    setYearRange([2010, 2026]);
+    setSelectedMake('');
+    toast({ title: 'Filtres réinitialisés', description: 'Tous les filtres ont été supprimés' });
+  };
+
+  const toggleFavorite = async (vehicleId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
 
     if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Connexion requise',
-        description: 'Vous devez être connecté pour ajouter aux favoris',
-      });
+      toast({ variant: 'destructive', title: 'Connexion requise', description: 'Vous devez être connecté pour ajouter aux favoris' });
       return;
     }
-
     if (!firestore) return;
 
     setTogglingFavorite(vehicleId);
@@ -172,147 +148,38 @@ export default function HomePage() {
     try {
       const favDocRef = doc(firestore, 'favorites', user.uid);
       const favSnap = await getDoc(favDocRef);
-
       if (isFavorite) {
-        // Remove from favorites
         if (favSnap.exists()) {
-          await updateDoc(favDocRef, {
-            vehicleIds: arrayRemove(vehicleId),
-            updatedAt: new Date(),
-          });
+          await updateDoc(favDocRef, { vehicleIds: arrayRemove(vehicleId), updatedAt: new Date() });
         }
-        setFavoriteIds(prev => prev.filter(id => id !== vehicleId));
-        toast({
-          title: 'Retiré des favoris',
-          description: 'Cette offre a été retirée de vos favoris',
-        });
+        setFavoriteIds((prev) => prev.filter((id) => id !== vehicleId));
       } else {
-        // Add to favorites
         if (favSnap.exists()) {
-          await updateDoc(favDocRef, {
-            vehicleIds: arrayUnion(vehicleId),
-            updatedAt: new Date(),
-          });
+          await updateDoc(favDocRef, { vehicleIds: arrayUnion(vehicleId), updatedAt: new Date() });
         } else {
-          await setDoc(favDocRef, {
-            userId: user.uid,
-            vehicleIds: [vehicleId],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+          await setDoc(favDocRef, { userId: user.uid, vehicleIds: [vehicleId], rentalIds: [], createdAt: new Date(), updatedAt: new Date() });
         }
-        setFavoriteIds(prev => [...prev, vehicleId]);
-        toast({
-          title: 'Ajouté aux favoris ❤️',
-          description: 'Cette offre a été ajoutée à vos favoris',
-        });
+        setFavoriteIds((prev) => [...prev, vehicleId]);
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Impossible de modifier les favoris',
-      });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de modifier les favoris' });
     } finally {
       setTogglingFavorite(null);
     }
   };
 
-  const filteredCars = useMemo(() => {
-    let vehicleList = vehicles || [];
-    
-    // Filter by search term
-    if (searchTerm) {
-      vehicleList = vehicleList.filter(vehicle =>
-        vehicle.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Filter by price range
-    vehicleList = vehicleList.filter(vehicle => 
-      vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1]
-    );
-    
-    // Filter by year range
-    vehicleList = vehicleList.filter(vehicle => 
-      vehicle.year >= yearRange[0] && vehicle.year <= yearRange[1]
-    );
-    
-    // Filter by make
-    if (selectedMake) {
-      vehicleList = vehicleList.filter(vehicle =>
-        vehicle.make?.toLowerCase() === selectedMake.toLowerCase()
-      );
-    }
-    
-    return vehicleList;
-  }, [vehicles, searchTerm, priceRange, yearRange, selectedMake]);
-  
-  // Get unique makes from vehicles
-  const availableMakes = useMemo(() => {
-    const makes = new Set<string>();
-    (vehicles || []).forEach(v => {
-      if (v.make) makes.add(v.make);
-    });
-    return Array.from(makes).sort();
-  }, [vehicles]);
-  
-  // Check if any filter is active
-  const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < 100000 || 
-    yearRange[0] > 2010 || yearRange[1] < 2024 || selectedMake !== '';
-  
-  // Reset all filters
-  const resetFilters = () => {
-    setPriceRange([0, 100000]);
-    setYearRange([2010, 2024]);
-    setSelectedMake('');
-    toast({
-      title: 'Filtres réinitialisés',
-      description: 'Tous les filtres ont été supprimés',
-    });
-  };
-
-
-  const userDocRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
-
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
-
-  const getInitials = (firstName?: string, lastName?: string) => {
-    if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`;
-    }
-    if (firstName) {
-        return firstName.substring(0, 2);
-    }
-    return 'ZU';
-  };
-  
   if (isUserLoading || isProfileLoading) {
     return (
-      <div className={cn(
-        "flex h-screen flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 text-foreground",
-      )}>
+      <div className="flex h-screen flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 text-foreground">
         <div className="flex flex-col items-center gap-8">
           {logoImage && (
-            <div className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-primary/20 shadow-2xl animate-pulse">
-              <Image
-                src={logoImage.imageUrl}
-                alt={logoImage.description}
-                fill
-                className="object-cover"
-                priority
-                data-ai-hint={logoImage.imageHint}
-              />
+            <div className="relative h-36 w-36 animate-pulse overflow-hidden rounded-full border-4 border-primary/20 shadow-2xl">
+              <Image src={logoImage.imageUrl} alt={logoImage.description} fill className="object-cover" priority data-ai-hint={logoImage.imageHint} />
             </div>
           )}
           <div className="flex items-center gap-4 text-muted-foreground">
-            <Loader2 className="w-8 h-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin" />
             <p className="text-lg font-semibold">Chargement...</p>
           </div>
         </div>
@@ -320,517 +187,280 @@ export default function HomePage() {
     );
   }
 
-  const userDisplayName = userProfile?.firstName ? `${userProfile.firstName}` : 'Utilisateur';
-  const userInitials = getInitials(userProfile?.firstName, userProfile?.lastName);
-
-  // Get user photo URL from Firestore profile or Firebase Auth
-  const userPhotoURL = userProfile?.photoURL || user?.photoURL;
+  const forYou = filteredCars.slice(0, 6);
+  const nearYou = [...filteredCars].reverse().slice(0, 6);
+  const basedOnSearch = searchTerm ? filteredCars.slice(0, 6) : filteredCars.slice(1, 7);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 font-body text-foreground relative overflow-hidden">
-      {/* Animated background elements with primary colors */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 font-body text-foreground">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/4 top-0 h-96 w-96 animate-pulse rounded-full bg-primary/10 blur-3xl" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-0 right-1/4 h-96 w-96 animate-pulse rounded-full bg-accent/10 blur-3xl" style={{ animationDuration: '6s', animationDelay: '1s' }} />
       </div>
 
-      {/* Top User Info Bar with primary colors */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-primary/10 via-background/90 to-accent/10 border-b border-primary/20 shadow-lg">
-        <div className="p-4 pb-3">
-        <div className="flex items-center justify-between">
-            {permissionStatus === 'granted' && location ? (
-              <div className="flex items-center gap-2 group transition-all duration-300">
-                <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
-                  <MapPin className="h-4 w-4 text-primary animate-pulse" style={{ animationDuration: '2s' }} />
-                </div>
-                <div className="flex flex-col items-start min-w-0">
-                  <span className="font-medium text-sm bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate max-w-[150px]">
-                    {location.city}, {location.country}
-                  </span>
-                  {currentTime && (
-                    <span className="text-xs text-primary/70 font-medium">
-                      {currentTime}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  // Always try to request location first
-                  // The hook will handle showing appropriate messages
-                  requestLocation();
-                }}
-                className={cn(
-                  "flex items-center gap-2 group transition-all duration-300 cursor-pointer hover:opacity-80",
-                  isLocationLoading && "opacity-70 cursor-wait"
-                )}
-                disabled={isLocationLoading}
-              >
-                <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-300 border border-primary/30">
-                  {isLocationLoading ? (
-                    <Loader2 className="h-4 w-4 text-primary animate-spin" />
-                  ) : (
-                    <MapPin className="h-4 w-4 text-primary/70" />
-                  )}
-                </div>
-                <div className="flex flex-col items-start min-w-0">
-                  <span className="font-medium text-sm text-primary/70">
-                    {isLocationLoading ? 'Chargement...' : 'Partager votre localisation'}
-                  </span>
-           </div>
-              </button>
-            )}
-           <div className="flex items-center gap-3">
-              <Link href="/notifications" className="relative group">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full bg-gradient-to-br from-primary/10 to-accent/10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-primary/30 hover:border-primary/50"
-                >
-                  <Bell className="h-5 w-5 text-primary group-hover:animate-bounce group-hover:text-accent transition-colors" />
-                  {unreadNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg animate-pulse border border-white/20">
-                      {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                    </span>
-                  )}
+      <main className="space-y-6 p-4 pb-20">
+        <section className="rounded-[2rem] border border-white/50 bg-card/75 p-3 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <div className="group relative flex-1">
+              <Search className="absolute left-4 top-1/2 z-10 h-5 w-5 -translate-y-1/2 text-primary/60 transition-colors group-focus-within:text-primary" />
+              <Input
+                placeholder="Rechercher une voiture..."
+                className="h-12 rounded-full border-2 border-primary/20 bg-gradient-to-r from-card to-primary/5 pl-12 pr-10 shadow-md transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+              {searchTerm && (
+                <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full hover:bg-primary/10" onClick={() => setSearchTerm('')}>
+                  <X className="h-4 w-4" />
                 </Button>
-              </Link>
-            
-              <Link href="/profile" className="group">
-                <div className="relative">
-                  <Avatar className="h-10 w-10 border-2 border-primary shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ring-2 ring-primary/30 group-hover:ring-accent/50">
-                    {userPhotoURL ? (
-                      <AvatarImage 
-                        src={userPhotoURL}
-                        alt="Photo de profil"
-                        className="object-cover"
-                        onError={(e) => {
-                          // Si l'image ne charge pas, on cache l'image et on affiche les initiales
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    ) : null}
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-accent rounded-full border-2 border-background shadow-sm ring-1 ring-primary/30" />
-                </div>
-              </Link>
+              )}
             </div>
-           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="p-4 space-y-6 pb-20">
-        {/* Notification des nouvelles icônes */}
-        <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-50">
-          <div className="bg-gradient-to-r from-accent/20 via-primary/10 to-accent/20 rounded-lg p-3 border border-accent/30 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0">
-                <div className="p-2 bg-gradient-to-br from-accent to-primary rounded-full">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">
-                  <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Nouveau !</span> Icônes AUTONEX personnalisées
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Découvrez nos services avec des icônes modernes et uniques ✨
-                </p>
-              </div>
-              <Link 
-                href="/icons-demo" 
-                className="flex-shrink-0 text-xs font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline"
-              >
-                Voir →
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Search Bar with primary colors */}
-        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-          <div className="relative flex-grow group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60 group-focus-within:text-primary transition-colors duration-300 z-10" />
-            <Input 
-              placeholder="Rechercher..." 
-              className="pl-12 pr-4 rounded-full h-12 bg-gradient-to-r from-card to-primary/5 border-2 border-primary/20 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 shadow-md hover:shadow-lg transition-all duration-300"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                onClick={() => setSearchTerm('')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          
-          {/* Shopping Cart Button with gradient */}
-          <Link href="/vehicles">
-            <Button 
-              size="icon" 
-              className="rounded-full h-12 w-12 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border-2 border-primary/30 hover:border-accent/50"
+            <Button
+              size="icon"
+              className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 transition hover:scale-105"
+              onClick={() => setIsFilterDialogOpen(true)}
             >
-              <ShoppingCart className="h-5 w-5" />
-          </Button>
-          </Link>
-        </div>
+              <SlidersHorizontal className="h-5 w-5" />
+            </Button>
+          </div>
+        </section>
 
-        {/* Categories Section with primary colors */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-          <div className="flex items-center gap-4 mb-4">
-            <h2 className="text-lg font-bold relative bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Catégories
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent" />
+        <section className="space-y-3">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-lg font-black text-transparent">
+              Que voulez-vous faire ?
             </h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-            {services.map((service, index) => {
-                const Icon = service.icon;
-              const isActive = index === 0; // Location is active by default (first category)
-                return (
-                <Link 
-                  href={service.href} 
-                  key={service.name}
-                  className="flex-shrink-0 group"
-                >
-                  <div className={cn(
-                    "flex flex-col items-center gap-2 w-20",
-                    "transition-all duration-300"
-                  )}>
-                    <div className={cn(
-                      "flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 border-2 group-hover:scale-110 relative",
-                      isActive 
-                        ? "bg-gradient-to-br from-primary to-accent border-primary/50 shadow-lg" 
-                        : "bg-gradient-to-br from-muted to-primary/5 border-primary/20 group-hover:border-primary/40 group-hover:from-primary/10 group-hover:to-accent/10"
-                    )}>
-                      {/* Badge "Nouveau" pour les icônes personnalisées */}
-                      {(Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || Icon === ServiceIcons.Insurance || 
-                        Icon === ServiceIcons.DrivingSchool || Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
-                        Icon === ServiceIcons.Station) && (
-                        <div className="absolute -top-1 -right-1 bg-gradient-to-r from-accent to-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-md border border-white/20 animate-pulse">
-                          ✨
-                        </div>
-                      )}
-                      
-                      {/* Vérifier si c'est une icône personnalisée AUTONEX ou une icône Lucide */}
-                      {Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || Icon === ServiceIcons.Insurance || 
-                       Icon === ServiceIcons.DrivingSchool || Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
-                       Icon === ServiceIcons.Station ? (
-                        <div className="relative">
-                          <Icon 
-                            size={28} 
-                            className={cn(
-                              "transition-all duration-300 relative z-10",
-                              isActive ? "drop-shadow-lg" : "group-hover:scale-110 group-hover:drop-shadow-md"
-                            )}
-                          />
-                          {/* Effet de lueur pour les icônes personnalisées */}
-                          {isActive && (
-                            <div className="absolute inset-0 bg-white/20 rounded-full blur-sm animate-pulse" />
-                          )}
-                        </div>
-                      ) : (
-                        <Icon className={cn(
-                          "h-7 w-7 transition-colors duration-300",
-                          isActive ? "text-primary-foreground" : "text-primary/70 group-hover:text-primary"
-                        )} />
-                      )}
-                    </div>
-                    <span className={cn(
-                      "text-xs font-medium text-center transition-colors duration-300",
-                      isActive ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-primary"
-                    )}>
-                      {service.name}
-                    </span>
-                  </div>
-                  </Link>
-                );
-              })}
-            </div>
-        </div>
-
-        {/* Services Nzila Highlight Section */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-250">
-          <div className="bg-gradient-to-br from-primary/10 via-card to-accent/10 rounded-2xl p-6 border-2 border-primary/20 shadow-lg backdrop-blur-sm">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-                Services Nzila Premium
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Découvrez nos services automobiles de qualité supérieure
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {services.slice(3).map((service, index) => {
-                const Icon = service.icon;
-                const isAutonexIcon = Icon === ServiceIcons.Parts || Icon === ServiceIcons.Security || 
-                                  Icon === ServiceIcons.Insurance || Icon === ServiceIcons.DrivingSchool || 
-                                  Icon === ServiceIcons.Advisor || Icon === ServiceIcons.Garage || 
-                                  Icon === ServiceIcons.Station;
-                
-                if (!isAutonexIcon) return null;
-                
-                return (
-                  <Link 
-                    href={service.href} 
-                    key={service.name}
-                    className="group"
-                  >
-                    <div className="bg-gradient-to-br from-card to-primary/5 rounded-xl p-4 border border-primary/20 hover:border-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-lg text-center">
-                      <div className="flex justify-center mb-3">
-                        <div className="p-3 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full border border-primary/30 group-hover:border-accent/50 transition-all duration-300 group-hover:scale-110">
-                          <Icon 
-                            size={24} 
-                            className="transition-all duration-300 group-hover:drop-shadow-md"
-                          />
-                        </div>
-                      </div>
-                      <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors duration-300 mb-1">
-                        {service.name}
-                      </h3>
-                      <div className="w-8 h-0.5 bg-gradient-to-r from-primary to-accent mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-            
-            <div className="text-center mt-6">
-              <Link 
-                href="/services-nav-demo" 
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm"
-              >
-                <ServiceIcons.Advisor size={16} />
-                Voir tous nos services
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Popular Cars Section with primary colors */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Voitures Populaires
-            </h2>
-            <Link 
-              href="/vehicles" 
-              className="text-sm font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline transition-all duration-300 hover:scale-105"
-            >
-              Voir tout →
-            </Link>
-          </div>
-          
-          {isVehiclesLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="text-primary/70 font-medium">Chargement des véhicules...</span>
-              </div>
-            </div>
-          ) : filteredCars.length === 0 ? (
-            <div className="text-center py-12 bg-gradient-to-br from-card to-primary/10 backdrop-blur-sm rounded-2xl border-2 border-dashed border-primary/30">
-              <ShoppingCart className="h-12 w-12 text-primary/50 mx-auto mb-4 opacity-50" />
-              <p className="text-primary/70 mb-2 font-medium">Aucun véhicule disponible pour le moment.</p>
-              <Link href="/dashboard/vente/nouveau" className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:underline font-medium inline-flex items-center gap-1 group">
-                Soyez le premier à publier une annonce !
-                <span className="group-hover:translate-x-1 transition-transform text-accent">→</span>
-              </Link>
-            </div>
-          ) : (
-            <Carousel
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-              className="w-full -mx-4 px-4"
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-              {filteredCars.map((vehicle, index) => {
-                const vehicleImageUrl = vehicle.imageUrls?.[0] || vehicle.imageUrl;
-                const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
-                const isFavorite = favoriteIds.includes(vehicle.id);
-                const isToggling = togglingFavorite === vehicle.id;
-                const vehicleRating = vehicleRatings[vehicle.id] || { average: 0, count: 0 };
-                const rating = vehicleRating.average || 0;
-                const sellerInfo = vehicle.userId ? (sellerNames[vehicle.userId] || { name: 'Vendeur' }) : { name: 'Vendeur' };
-                
+          <div className="flex items-start justify-between gap-2 rounded-[1.5rem] border border-white/50 bg-card/70 px-3 py-3 shadow-xl shadow-primary/5 backdrop-blur-xl">
+            {services.map((service) => {
               return (
-                  <CarouselItem key={vehicle.id} className="pl-2 md:pl-4 basis-auto">
-                  <Link 
-                    href={`/vehicles/${vehicle.id}`} 
-                    className="flex-shrink-0 w-[280px] group block"
-                  >
-                    <Card className="rounded-2xl overflow-hidden shadow-md border-2 border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-card to-primary/5">
-                      <CardContent className="p-0">
-                    <div className="relative">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={cn(
-                              "absolute top-3 right-3 h-8 w-8 rounded-full z-20 transition-all duration-300 border-2",
-                              isFavorite 
-                                ? "bg-gradient-to-br from-primary to-accent text-white hover:from-primary/90 hover:to-accent/90 border-primary/30 shadow-lg" 
-                                : "bg-white/90 backdrop-blur-sm text-primary/70 hover:bg-primary/10 hover:text-primary border-primary/20 hover:border-primary/40"
-                            )}
-                            onClick={(e) => toggleFavorite(vehicle.id, e)}
-                            disabled={isToggling}
-                          >
-                            {isToggling ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Heart className={cn(
-                                "h-4 w-4 transition-all duration-300",
-                                isFavorite && "fill-current"
-                              )} />
-                            )}
-                      </Button>
-                          
-                          {vehicleImageUrl ? (
-                            <div className="relative w-full h-[180px] overflow-hidden bg-muted">
-                              <Image
-                                src={vehicleImageUrl}
-                                alt={vehicle.title || `${vehicle.make} ${vehicle.model}`}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          ) : placeholderImage ? (
-                            <div className="relative w-full h-[180px] overflow-hidden bg-muted">
-                        <Image
-                                src={placeholderImage.imageUrl}
-                                alt={vehicle.title || `${vehicle.make} ${vehicle.model}`}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={placeholderImage.imageHint}
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-full h-[180px] bg-muted flex items-center justify-center">
-                              <ShoppingCart className="h-12 w-12 text-muted-foreground opacity-50" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4 space-y-2 bg-gradient-to-b from-card to-primary/5">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
-                                ${vehicle.price?.toLocaleString()}
-                              </p>
-                              <h3 className="font-semibold text-base truncate text-foreground">
-                                {vehicle.title || `${vehicle.make} ${vehicle.model}`}
-                              </h3>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            {vehicleRating.count > 0 && (
-                              <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={cn(
-                                      "h-4 w-4 transition-colors",
-                                      i < Math.floor(rating)
-                                        ? "fill-primary text-primary"
-                                        : i < rating
-                                        ? "fill-accent/50 text-accent/50"
-                                        : "fill-none text-muted-foreground"
-                                    )}
-                                  />
-                                ))}
-                                <span className="text-sm text-primary font-medium ml-1">
-                                  {rating.toFixed(1)}
-                                </span>
-                              </div>
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              Par {sellerInfo.name}
-                            </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                  </Link>
-                  </CarouselItem>
+                <Link
+                  key={service.name}
+                  href={service.href}
+                  className="group flex min-w-0 flex-1 flex-col items-center gap-2"
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 transition duration-300 group-hover:-translate-y-1">
+                    <ActionIcon kind={service.kind} />
+                  </div>
+                  <span className="truncate text-center text-[11px] font-black text-primary">{service.name}</span>
+                </Link>
               );
             })}
-              </CarouselContent>
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border-2" />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border-2" />
-            </Carousel>
-          )}
-        </div>
+          </div>
+        </section>
 
-        {/* Services Statistics Section */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
-          <div className="bg-gradient-to-br from-card via-primary/5 to-accent/5 rounded-2xl p-6 border border-primary/20 backdrop-blur-sm">
-            <h3 className="text-lg font-bold text-center mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              AUTONEX en chiffres
-            </h3>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center group">
-                <div className="flex justify-center mb-2">
-                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-full border border-blue-200 group-hover:border-blue-400 transition-all duration-300">
-                    <ServiceIcons.Parts size={20} />
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-primary">500+</div>
-                <div className="text-xs text-muted-foreground">Pièces disponibles</div>
-              </div>
-              
-              <div className="text-center group">
-                <div className="flex justify-center mb-2">
-                  <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-full border border-green-200 group-hover:border-green-400 transition-all duration-300">
-                    <ServiceIcons.Garage size={20} />
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-primary">50+</div>
-                <div className="text-xs text-muted-foreground">Garages partenaires</div>
-              </div>
-              
-              <div className="text-center group">
-                <div className="flex justify-center mb-2">
-                  <div className="p-3 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-full border border-red-200 group-hover:border-red-400 transition-all duration-300">
-                    <ServiceIcons.Security size={20} />
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-primary">24/7</div>
-                <div className="text-xs text-muted-foreground">Sécurité assurée</div>
-              </div>
-              
-              <div className="text-center group">
-                <div className="flex justify-center mb-2">
-                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-full border border-purple-200 group-hover:border-purple-400 transition-all duration-300">
-                    <ServiceIcons.Advisor size={20} />
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-primary">1000+</div>
-                <div className="text-xs text-muted-foreground">Clients satisfaits</div>
-              </div>
+        <OfferRail title="Pour toi" offers={forYou} favoriteIds={favoriteIds} togglingFavorite={togglingFavorite} toggleFavorite={toggleFavorite} ratings={vehicleRatings} sellerNames={sellerNames} loading={isVehiclesLoading} />
+        <OfferRail title="Offres proches de chez vous" offers={nearYou} favoriteIds={favoriteIds} togglingFavorite={togglingFavorite} toggleFavorite={toggleFavorite} ratings={vehicleRatings} sellerNames={sellerNames} loading={isVehiclesLoading} />
+        <OfferRail title="Sur base de vos recherches" offers={basedOnSearch} favoriteIds={favoriteIds} togglingFavorite={togglingFavorite} toggleFavorite={toggleFavorite} ratings={vehicleRatings} sellerNames={sellerNames} loading={isVehiclesLoading} />
+
+        <section>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-lg font-black text-transparent">Véhicules populaires</h2>
+            <Link href="/vehicles" className="rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
+              Voir tout
+            </Link>
+          </div>
+          <div className="flex snap-x gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {filteredCars.map((vehicle) => (
+              <VehicleCard
+                key={`popular-${vehicle.id}`}
+                vehicle={vehicle}
+                favoriteIds={favoriteIds}
+                togglingFavorite={togglingFavorite}
+                toggleFavorite={toggleFavorite}
+                ratings={vehicleRatings}
+                sellerNames={sellerNames}
+                className="w-[72vw] max-w-[280px] shrink-0 snap-start"
+              />
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+        <DialogContent className="rounded-[2rem] border-white/50 bg-card/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle>Filtrer les véhicules</DialogTitle>
+            <DialogDescription>Affinez les offres selon votre budget, l’année et la marque.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-3">
+              <Label>Prix : ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}</Label>
+              <Slider value={priceRange} onValueChange={(value) => setPriceRange(value as [number, number])} min={0} max={100000} step={1000} />
             </div>
-            
-            <div className="text-center mt-6">
-              <p className="text-sm text-muted-foreground">
-                Rejoignez la communauté automobile la plus dynamique de RDC
-              </p>
+            <div className="space-y-3">
+              <Label>Année : {yearRange[0]} - {yearRange[1]}</Label>
+              <Slider value={yearRange} onValueChange={(value) => setYearRange(value as [number, number])} min={2010} max={2026} step={1} />
+            </div>
+            <div className="space-y-3">
+              <Label>Marque</Label>
+              <select value={selectedMake} onChange={(event) => setSelectedMake(event.target.value)} className="w-full rounded-xl border bg-background px-3 py-2">
+                <option value="">Toutes les marques</option>
+                {availableMakes.map((make) => <option key={make} value={make}>{make}</option>)}
+              </select>
             </div>
           </div>
-        </div>
-      </main>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={resetFilters}>Réinitialiser</Button>
+            <Button onClick={() => setIsFilterDialogOpen(false)}>Appliquer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function OfferRail({
+  title,
+  offers,
+  favoriteIds,
+  togglingFavorite,
+  toggleFavorite,
+  ratings,
+  sellerNames,
+  loading,
+}: {
+  title: string;
+  offers: Vehicle[];
+  favoriteIds: string[];
+  togglingFavorite: string | null;
+  toggleFavorite: (vehicleId: string, event: React.MouseEvent) => void;
+  ratings: Record<string, { average: number; count: number }>;
+  sellerNames: Record<string, { name: string; photoURL?: string }>;
+  loading?: boolean;
+}) {
+  return (
+    <section>
+      <h2 className="mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-lg font-black text-transparent">{title}</h2>
+      <div className="flex snap-x gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {loading && offers.length === 0 ? (
+          <div className="flex h-48 w-full items-center justify-center rounded-[1.5rem] bg-card/75 text-muted-foreground">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Chargement...
+          </div>
+        ) : (
+          offers.map((vehicle) => (
+            <VehicleCard
+              key={`${title}-${vehicle.id}`}
+              vehicle={vehicle}
+              favoriteIds={favoriteIds}
+              togglingFavorite={togglingFavorite}
+              toggleFavorite={toggleFavorite}
+              ratings={ratings}
+              sellerNames={sellerNames}
+              className="w-[68vw] max-w-[260px] shrink-0 snap-start"
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function VehicleCard({
+  vehicle,
+  favoriteIds,
+  togglingFavorite,
+  toggleFavorite,
+  ratings,
+  sellerNames,
+  className,
+}: {
+  vehicle: Vehicle;
+  favoriteIds: string[];
+  togglingFavorite: string | null;
+  toggleFavorite: (vehicleId: string, event: React.MouseEvent) => void;
+  ratings: Record<string, { average: number; count: number }>;
+  sellerNames: Record<string, { name: string; photoURL?: string }>;
+  className?: string;
+}) {
+  const title = vehicle.title || `${vehicle.make || ''} ${vehicle.model || ''}`.trim() || 'Véhicule';
+  const imageUrl = getListingPrimaryImage(vehicle);
+  const rating = ratings[vehicle.id];
+  const isFavorite = favoriteIds.includes(vehicle.id);
+  const sellerName = vehicle.userId ? sellerNames[vehicle.userId]?.name : null;
+
+  return (
+    <Link href={vehicle.id.startsWith('demo-') ? '/vehicles' : `/vehicles/${vehicle.id}`} className={className}>
+      <Card className="h-full overflow-hidden rounded-[1.5rem] border-white/50 bg-card/85 shadow-xl shadow-primary/10 backdrop-blur-xl transition duration-300 hover:-translate-y-1">
+        <CardContent className="p-3">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-2 top-2 z-10 h-8 w-8 rounded-full bg-background/85 text-primary backdrop-blur hover:bg-primary hover:text-primary-foreground"
+              onClick={(event) => toggleFavorite(vehicle.id, event)}
+              disabled={togglingFavorite === vehicle.id}
+            >
+              {togglingFavorite === vehicle.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
+              )}
+            </Button>
+            {imageUrl && (
+              <Image src={imageUrl} alt={title} width={320} height={220} className="aspect-[4/3] w-full rounded-[1.1rem] object-cover" />
+            )}
+          </div>
+          <div className="pt-3">
+            <h3 className="truncate text-base font-black">{title}</h3>
+            <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 text-accent" />
+              <span className="truncate">{vehicle.location || sellerName || 'RDC'}</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-sm font-black text-primary">${Number(vehicle.price || 0).toLocaleString()}</p>
+              <div className="flex items-center gap-1 text-sm">
+                <Star className="h-4 w-4 fill-accent text-accent" />
+                <span className="font-bold">{rating?.average ? rating.average.toFixed(1) : '4.8'}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+function ActionIcon({ kind }: { kind: (typeof services)[number]['kind'] }) {
+  if (kind === 'rent') {
+    return (
+      <svg viewBox="0 0 48 48" className="h-7 w-7" fill="none" aria-hidden="true">
+        <path d="M14 26h20l-3-8H17l-3 8Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M12 26h24v9H12v-9Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M17 35v3M31 35v3" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path d="M18 30h.1M30 30h.1" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+        <path d="M24 8v7M20.5 11.5 24 8l3.5 3.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === 'buy') {
+    return (
+      <svg viewBox="0 0 48 48" className="h-7 w-7" fill="none" aria-hidden="true">
+        <path d="M11 25h26l-4-9H15l-4 9Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M10 25h28v9H10v-9Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M16 34v3M32 34v3" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path d="M17 29h.1M31 29h.1" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+        <path d="M33 8h6v6M38 9 29 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === 'sell') {
+    return (
+      <svg viewBox="0 0 48 48" className="h-7 w-7" fill="none" aria-hidden="true">
+        <path d="M9 14h16l14 14-11 11L14 25V14Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M18 20h.1" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+        <path d="M27 28h8M31 24v8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 48 48" className="h-7 w-7" fill="none" aria-hidden="true">
+      <path d="M24 7 38 13v10c0 9-5.8 15.5-14 18-8.2-2.5-14-9-14-18V13l14-6Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+      <path d="M18 24 22 28l8-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

@@ -29,6 +29,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useFirestore, useMemoFirebase, useUser } from '@/firebase/provider';
 import { doc, getDoc, setDoc, deleteDoc, arrayUnion, arrayRemove, updateDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
+import { getListingImageUrls } from '@/lib/listing-images';
 
 interface SellerInfo {
   name: string;
@@ -247,9 +249,7 @@ export default function VehicleDetailsPage() {
       </div>
     );
   }
-  const images = (Array.isArray(vehicle.imageUrls) && vehicle.imageUrls.length > 0)
-    ? vehicle.imageUrls
-    : (vehicle.imageUrl ? [vehicle.imageUrl] : []);
+  const images: string[] = getListingImageUrls(vehicle);
   
   const getSellerInitials = () => {
     if (seller?.firstName && seller?.lastName) {
@@ -331,7 +331,7 @@ export default function VehicleDetailsPage() {
     const shareUrl = window.location.href;
     const shareTitle = vehicle?.title || `${vehicle?.make} ${vehicle?.model} ${vehicle?.year}`;
     const shareDescription = vehicle?.description || `${vehicle?.make} ${vehicle?.model} ${vehicle?.year} - ${vehicle?.mileage || 'Kilométrage non spécifié'}`;
-    const shareText = `🚗 ${shareTitle}\n\n💰 Prix: $${vehicle?.price?.toLocaleString()}\n📅 Année: ${vehicle?.year}\n\n${shareDescription}\n\n👉 Voir l'offre sur Nzila:`;
+    const shareText = `🚗 ${shareTitle}\n\n💰 Prix: $${vehicle?.price?.toLocaleString()}\n📅 Année: ${vehicle?.year}\n\n${shareDescription}\n\n👉 Voir l'offre sur AUTONEX:`;
     
     return { shareUrl, shareTitle, shareText, shareDescription };
   };
@@ -391,7 +391,7 @@ export default function VehicleDetailsPage() {
 
   const shareOnTwitter = () => {
     const { shareUrl, shareTitle } = getShareData();
-    const twitterText = encodeURIComponent(`🚗 ${shareTitle} à $${vehicle?.price?.toLocaleString()} sur Nzila!`);
+    const twitterText = encodeURIComponent(`🚗 ${shareTitle} à $${vehicle?.price?.toLocaleString()} sur AUTONEX!`);
     window.open(`https://twitter.com/intent/tweet?text=${twitterText}&url=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
     setShowShareDialog(false);
     toast({
@@ -413,7 +413,7 @@ export default function VehicleDetailsPage() {
 
   const shareByEmail = () => {
     const { shareUrl, shareTitle, shareText } = getShareData();
-    const subject = encodeURIComponent(`Offre Nzila: ${shareTitle}`);
+    const subject = encodeURIComponent(`Offre AUTONEX: ${shareTitle}`);
     const body = encodeURIComponent(`${shareText}\n\n${shareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     setShowShareDialog(false);
@@ -440,33 +440,14 @@ export default function VehicleDetailsPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-        <header className="bg-transparent p-4 flex items-center justify-between absolute top-0 left-0 w-full z-10">
-            <Button variant="ghost" size="icon" className="bg-background/50 backdrop-blur-sm rounded-full" onClick={() => router.back()}>
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-            <div className="flex gap-2">
-                 <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className={`bg-background/50 backdrop-blur-sm rounded-full transition-all ${isFavorite ? 'text-red-500' : ''}`}
-                    onClick={toggleFavorite}
-                    disabled={isFavoriteLoading}
-                  >
-                    <Heart className={`h-6 w-6 transition-all ${isFavorite ? 'fill-red-500 text-red-500 scale-110' : ''}`} />
-                </Button>
-                 <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="bg-background/50 backdrop-blur-sm rounded-full"
-                    onClick={handleShare}
-                    disabled={isSharing}
-                  >
-                    <Share2 className="h-6 w-6" />
-                </Button>
-            </div>
-        </header>
-
       <main className="pb-28">
+        <div className="px-4 pb-3">
+          <Button variant="ghost" onClick={() => router.back()} className="rounded-full bg-background/70 backdrop-blur">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+        </div>
+
         <Carousel className="w-full">
           <CarouselContent>
             {images.map((img, index) => (
@@ -496,8 +477,32 @@ export default function VehicleDetailsPage() {
         <div className="p-4 space-y-6 -mt-8 relative">
             <Card className="shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold">{vehicle.model}</CardTitle>
-                    <p className="text-2xl font-extrabold text-primary">${vehicle.price}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-2xl font-bold">{vehicle.model}</CardTitle>
+                        <p className="text-2xl font-extrabold text-primary">${vehicle.price}</p>
+                      </div>
+                      <div className="flex shrink-0 gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className={cn("rounded-full", isFavorite && "text-primary")}
+                          onClick={toggleFavorite}
+                          disabled={isFavoriteLoading}
+                        >
+                          <Heart className={cn("h-5 w-5 transition-all", isFavorite && "fill-current scale-110")} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={handleShare}
+                          disabled={isSharing}
+                        >
+                          <Share2 className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
                     {!isRatingLoading && (
                       <div className="flex items-center gap-4 mt-2">
                         <Rating

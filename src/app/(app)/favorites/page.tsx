@@ -218,14 +218,6 @@ export default function FavoritesPage() {
   if (isLoading || isUserLoading) {
     return (
       <div className="min-h-screen bg-muted">
-        <header className="bg-background p-4 flex items-center gap-4 shadow-sm sticky top-0 z-10">
-          <Link href="/home">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-bold">Mes Favoris</h1>
-        </header>
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground mt-4">Chargement...</p>
@@ -237,14 +229,6 @@ export default function FavoritesPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-muted">
-        <header className="bg-background p-4 flex items-center gap-4 shadow-sm sticky top-0 z-10">
-          <Link href="/home">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-bold">Mes Favoris</h1>
-        </header>
         <div className="flex flex-col items-center justify-center text-center py-16 px-4">
           <Heart className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold">Connexion requise</h3>
@@ -261,20 +245,21 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-background p-4 flex items-center gap-4 shadow-sm sticky top-0 z-10">
-        <Link href="/home">
-            <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-        </Link>
-        <h1 className="text-xl font-bold">Mes Favoris</h1>
-        {favorites.length > 0 && (
-          <span className="ml-auto text-sm text-muted-foreground">
-            {favorites.length} favori{favorites.length > 1 ? 's' : ''}
-          </span>
-        )}
-      </header>
       <main className="p-4 space-y-4">
+        <section className="flex items-center justify-between gap-4 rounded-[2rem] border border-white/50 bg-card/75 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+          <div>
+            <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-2xl font-black text-transparent">
+              Mes favoris
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">Vos véhicules et locations sauvegardés.</p>
+          </div>
+          {favorites.length > 0 && (
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
+              {favorites.length}
+            </span>
+          )}
+        </section>
+
         {favorites.length === 0 ? (
              <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
             <Heart className="h-12 w-12 text-muted-foreground mb-4" />

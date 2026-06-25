@@ -14,6 +14,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useSellerNames } from '@/hooks/use-seller-names';
+import { getListingImageUrls } from '@/lib/listing-images';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import {
   Dialog,
@@ -125,26 +126,24 @@ export default function VehicleRentalPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-background p-4 flex items-center justify-between gap-4 shadow-sm sticky top-0 z-20">
-        <div className="flex items-center gap-4">
-        <Link href="/home" passHref>
-            <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-        </Link>
-        <h1 className="text-xl font-bold">Véhicules de Location</h1>
-        </div>
-        <Link href="/vehicleRentalListings/nouveau">
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Louer
-          </Button>
-        </Link>
-      </header>
-      
       <main className="p-4 space-y-4">
+        <section className="flex items-center justify-between gap-4 rounded-[2rem] border border-white/50 bg-card/75 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+          <div>
+            <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-2xl font-black text-transparent">
+              Louer un véhicule
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">Filtrez par ville, type et prix / jour.</p>
+          </div>
+          <Link href="/vehicleRentalListings/nouveau">
+            <Button size="sm" className="gap-2 rounded-full">
+              <Plus className="h-4 w-4" />
+              Publier
+            </Button>
+          </Link>
+        </section>
+
         {/* Search and Filter Bar */}
-        <div className="sticky top-[73px] bg-muted z-10 py-2">
+        <div className="py-2">
             <div className="flex items-center gap-3">
               <div className="relative flex-grow">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -173,12 +172,12 @@ export default function VehicleRentalPage() {
                   variant="outline" 
                   className={cn(
                     "rounded-full h-12 w-12 shadow-sm",
-                    hasActiveFilters && "bg-green-100 border-green-500 text-green-700"
+                    hasActiveFilters && "bg-primary/10 border-primary text-primary"
                   )}
                 >
                   <Filter className="h-5 w-5" />
                   {hasActiveFilters && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-bold">
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-accent rounded-full text-[10px] flex items-center justify-center text-accent-foreground font-bold">
                       !
                     </span>
                   )}
@@ -306,7 +305,7 @@ export default function VehicleRentalPage() {
         {!isLoading && !error && filteredVehicles.length > 0 && (
         <div className="flex flex-col gap-6 pb-4">
             {filteredVehicles.map((rental) => {
-              const rentalImages = rental.imageUrls || (rental.imageUrl ? [rental.imageUrl] : []);
+              const rentalImages = getListingImageUrls(rental);
               const placeholderImage = PlaceHolderImages.find(p => p.id === 'car-tesla-model-3');
               const displayTitle = rental.title || `${rental.make} ${rental.model}`;
               

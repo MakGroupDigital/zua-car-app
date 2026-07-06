@@ -6,8 +6,9 @@ import { AlertCircle, BriefcaseBusiness, CheckCircle, ExternalLink, Search, XCir
 import { ChartContainer, StatCard } from '../components/stat-card';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore, useMemoFirebase } from '@/firebase';
+import { UserRole } from '@/types/admin';
 
-type BusinessProfile = { id: string; companyName?: string; businessLabel?: string; representativeName?: string; email?: string; phone?: string; address?: string; description?: string; legalDocumentUrls?: string[]; status?: 'pending' | 'approved' | 'rejected'; rejectionReason?: string };
+type BusinessProfile = { id: string; userId?: string; businessType?: 'vehicle_company' | 'insurance_company'; companyName?: string; businessLabel?: string; representativeName?: string; email?: string; phone?: string; address?: string; description?: string; legalDocumentUrls?: string[]; status?: 'pending' | 'approved' | 'rejected'; rejectionReason?: string };
 type Listing = { id: string; title?: string; make?: string; model?: string; status?: string; userId?: string };
 
 function titleOf(item: Listing) {
@@ -46,6 +47,17 @@ export default function ApprovalsPage() {
     setUpdatingId(profile.id);
     try {
       await updateDoc(doc(firestore, 'businessProfiles', profile.id), { status, rejectionReason, reviewedAt: serverTimestamp(), updatedAt: serverTimestamp() });
+      if (status === 'approved') {
+        const role = profile.businessType === 'insurance_company'
+          ? UserRole.BUSINESS_INSURANCE
+          : UserRole.BUSINESS_VEHICLE;
+        await updateDoc(doc(firestore, 'users', profile.userId || profile.id), {
+          role,
+          isBusinessPartner: true,
+          businessProfileId: profile.id,
+          updatedAt: serverTimestamp(),
+        });
+      }
     } finally {
       setUpdatingId(null);
     }

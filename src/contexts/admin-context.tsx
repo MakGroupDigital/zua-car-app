@@ -149,6 +149,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       [UserRole.MODERATOR]: 3,
       [UserRole.SUPPORT]: 2,
       [UserRole.SELLER]: 1,
+      [UserRole.BUSINESS_VEHICLE]: 1,
+      [UserRole.BUSINESS_INSURANCE]: 1,
       [UserRole.USER]: 0,
     };
 

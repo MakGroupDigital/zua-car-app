@@ -48,6 +48,8 @@ const roleLabels: Record<string, string> = {
   moderator: 'Modérateur',
   admin: 'Admin',
   super_admin: 'Super admin',
+  business_vehicle: 'Business vente/location',
+  business_insurance: 'Business assurance',
 };
 
 function displayName(user: AdminUserRow) {

@@ -11,6 +11,8 @@ export enum UserRole {
   SUPPORT = 'support',
   USER = 'user',
   SELLER = 'seller',
+  BUSINESS_VEHICLE = 'business_vehicle',
+  BUSINESS_INSURANCE = 'business_insurance',
 }
 
 export enum UserStatus {

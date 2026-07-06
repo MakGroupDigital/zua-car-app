@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { collection } from 'firebase/firestore';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Activity, AlertCircle, BriefcaseBusiness, Car, Clock, FileText, ShoppingCart, Users } from 'lucide-react';
 import { StatCard, ChartContainer, ListItem } from './components/stat-card';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -21,8 +20,6 @@ type AdminDoc = {
   email?: string;
   name?: string;
 };
-
-const pieColors = ['#0b4f8a', '#00a7f5', '#10b981', '#f59e0b'];
 
 function toDate(value: any): Date | null {
   if (!value) return null;
@@ -121,28 +118,41 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <ChartContainer title="Nouveaux utilisateurs" description="7 derniers jours">
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={usersChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" allowDecimals={false} />
-              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }} labelStyle={{ color: '#fff' }} />
-              <Bar dataKey="newUsers" fill="#00a7f5" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="space-y-3">
+            {usersChartData.map((item) => {
+              const max = Math.max(...usersChartData.map((entry) => entry.newUsers), 1);
+              return (
+                <div key={item.date}>
+                  <div className="mb-1 flex items-center justify-between text-sm">
+                    <span className="text-slate-400">{item.date}</span>
+                    <span className="font-semibold text-white">{item.newUsers}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-800">
+                    <div className="h-2 rounded-full bg-cyan-500" style={{ width: `${Math.max(4, (item.newUsers / max) * 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </ChartContainer>
 
         <ChartContainer title="Distribution des contenus">
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie data={listingTypeData} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                {listingTypeData.map((entry, index) => (
-                  <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="space-y-3">
+            {listingTypeData.map((item) => {
+              const max = Math.max(...listingTypeData.map((entry) => entry.value), 1);
+              return (
+                <div key={item.name}>
+                  <div className="mb-1 flex items-center justify-between text-sm">
+                    <span className="text-slate-400">{item.name}</span>
+                    <span className="font-semibold text-white">{item.value}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-800">
+                    <div className="h-2 rounded-full bg-blue-600" style={{ width: `${Math.max(4, (item.value / max) * 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </ChartContainer>
       </div>
 

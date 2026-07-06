@@ -1,280 +1,245 @@
 'use client';
 
-import { useState } from 'react';
-import { ChartContainer, StatCard, Pagination } from '../components/stat-card';
-import { Search, Filter, Eye, Trash2, Home, Building, Wrench, Check, Zap } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { Building, Check, Eye, Home, Search, Trash2, Wrench, Zap } from 'lucide-react';
+import { ChartContainer, Pagination, StatCard } from '../components/stat-card';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 
-const MOCK_LISTINGS = [
-  {
-    id: '1',
-    title: 'Toyota Camry 2023',
-    owner: 'Ahmed Mohammed',
-    category: 'car',
-    price: 25000,
-    status: 'active',
-    views: 234,
-    favorites: 42,
-    createdAt: new Date('2024-01-15'),
-  },
-  {
-    id: '2',
-    title: 'BMW X5 2022',
-    owner: 'Fatima Hassan',
-    category: 'car',
-    price: 45000,
-    status: 'pending',
-    views: 0,
-    favorites: 0,
-    createdAt: new Date('2024-01-19'),
-  },
-  {
-    id: '3',
-    title: 'Kit Moteur Complet',
-    owner: 'Mohamed Ali',
-    category: 'parts',
-    price: 1200,
-    status: 'active',
-    views: 87,
-    favorites: 12,
-    createdAt: new Date('2024-01-10'),
-  },
-  {
-    id: '4',
-    title: 'Location Mercedes Classe E',
-    owner: 'Aisha Khalid',
-    category: 'rental',
-    price: 250,
-    status: 'active',
-    views: 567,
-    favorites: 89,
-    createdAt: new Date('2024-01-05'),
-  },
-];
+type ListingDoc = {
+  id: string;
+  title?: string;
+  make?: string;
+  model?: string;
+  name?: string;
+  userId?: string;
+  price?: number;
+  pricePerDay?: number;
+  status?: string;
+  views?: number;
+  favorites?: number;
+  createdAt?: any;
+  location?: string;
+  category?: string;
+};
+
+type AdminListing = ListingDoc & {
+  listingType: 'car' | 'rental' | 'parts';
+  href: string;
+};
 
 const categoryIcons = {
   car: <Home size={16} />,
   rental: <Building size={16} />,
   parts: <Wrench size={16} />,
-  service: <Zap size={16} />,
 };
 
 const categoryLabels = {
-  car: 'Vente Voiture',
+  car: 'Vente voiture',
   rental: 'Location',
   parts: 'Pièces',
-  service: 'Service',
 };
 
-const statusBadges = {
+const statusBadges: Record<string, string> = {
   active: 'bg-green-500/20 text-green-400',
   pending: 'bg-amber-500/20 text-amber-400',
   flagged: 'bg-red-500/20 text-red-400',
   archived: 'bg-slate-500/20 text-slate-400',
+  sold: 'bg-blue-500/20 text-blue-400',
 };
 
+function titleOf(listing: AdminListing) {
+  return listing.title || listing.name || `${listing.make || ''} ${listing.model || ''}`.trim() || 'Annonce';
+}
+
+function statusOf(listing: AdminListing) {
+  return listing.status || 'active';
+}
+
+function priceOf(listing: AdminListing) {
+  return Number(listing.price || listing.pricePerDay || 0);
+}
+
 export default function ListingsManagement() {
-  const [listings, setListings] = useState(MOCK_LISTINGS);
-  const [filteredListings, setFilteredListings] = useState(MOCK_LISTINGS);
+  const firestore = useFirestore();
+  const vehiclesRef = useMemoFirebase(() => firestore ? collection(firestore, 'vehicles') : null, [firestore]);
+  const rentalsRef = useMemoFirebase(() => firestore ? collection(firestore, 'rentals') : null, [firestore]);
+  const partsRef = useMemoFirebase(() => firestore ? collection(firestore, 'parts') : null, [firestore]);
+  const { data: vehicles, isLoading: vehiclesLoading } = useCollection<ListingDoc>(vehiclesRef);
+  const { data: rentals, isLoading: rentalsLoading } = useCollection<ListingDoc>(rentalsRef);
+  const { data: parts, isLoading: partsLoading } = useCollection<ListingDoc>(partsRef);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  const handleSearch = (term: string, category: string, status: string) => {
-    let result = listings;
+  const listings = useMemo<AdminListing[]>(() => [
+    ...(vehicles || []).map((item) => ({ ...item, listingType: 'car' as const, href: `/vehicles/${item.id}` })),
+    ...(rentals || []).map((item) => ({ ...item, listingType: 'rental' as const, href: `/vehicleRentalListings/${item.id}` })),
+    ...(parts || []).map((item) => ({ ...item, listingType: 'parts' as const, href: `/parts/${item.id}` })),
+  ], [parts, rentals, vehicles]);
 
-    if (term) {
-      result = result.filter(
-        (l) =>
-          l.title.toLowerCase().includes(term.toLowerCase()) ||
-          l.owner.toLowerCase().includes(term.toLowerCase())
-      );
-    }
-
-    if (category !== 'all') {
-      result = result.filter((l) => l.category === category);
-    }
-
-    if (status !== 'all') {
-      result = result.filter((l) => l.status === status);
-    }
-
-    setFilteredListings(result);
-    setCurrentPage(1);
-  };
+  const filteredListings = useMemo(() => {
+    return listings.filter((listing) => {
+      const text = `${titleOf(listing)} ${listing.userId || ''} ${listing.location || ''}`.toLowerCase();
+      const matchesSearch = !searchTerm || text.includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter === 'all' || listing.listingType === categoryFilter;
+      const matchesStatus = statusFilter === 'all' || statusOf(listing) === statusFilter;
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [categoryFilter, listings, searchTerm, statusFilter]);
 
   const paginatedListings = filteredListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const totalPages = Math.ceil(filteredListings.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / itemsPerPage));
+  const isLoading = vehiclesLoading || rentalsLoading || partsLoading;
+
+  const updateListingStatus = async (listing: AdminListing, status: string) => {
+    if (!firestore) return;
+    const collectionName = listing.listingType === 'car' ? 'vehicles' : listing.listingType === 'rental' ? 'rentals' : 'parts';
+    setUpdatingId(`${listing.listingType}:${listing.id}`);
+    try {
+      await updateDoc(doc(firestore, collectionName, listing.id), {
+        status,
+        updatedAt: serverTimestamp(),
+      });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-slate-400">Chargement des annonces Firebase...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Gestion des Listings</h1>
-        <p className="text-slate-400 mt-1">Gérer tous les annonces et listings de la plateforme</p>
+        <h1 className="text-3xl font-bold text-white">Gestion des listings</h1>
+        <p className="mt-1 text-slate-400">Ventes, locations et pièces depuis Firestore</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Listings Actifs"
-          value={listings.filter((l) => l.status === 'active').length}
-          icon={<Check size={24} />}
-          color="green"
-        />
-        <StatCard
-          label="En Attente"
-          value={listings.filter((l) => l.status === 'pending').length}
-          icon={<Zap size={24} />}
-          color="amber"
-        />
-        <StatCard
-          label="Signalés"
-          value={listings.filter((l) => l.status === 'flagged').length}
-          icon={<Search size={24} />}
-          color="red"
-        />
-        <StatCard
-          label="Total"
-          value={listings.length}
-          icon={<Home size={24} />}
-          color="blue"
-        />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <StatCard label="Actifs" value={listings.filter((l) => statusOf(l) === 'active').length} icon={<Check size={24} />} color="green" />
+        <StatCard label="En attente" value={listings.filter((l) => statusOf(l) === 'pending').length} icon={<Zap size={24} />} color="amber" />
+        <StatCard label="Signalés" value={listings.filter((l) => statusOf(l) === 'flagged').length} icon={<Search size={24} />} color="red" />
+        <StatCard label="Total" value={listings.length} icon={<Home size={24} />} color="blue" />
       </div>
 
-      {/* Filters */}
-      <ChartContainer title="Recherche et Filtres">
+      <ChartContainer title="Recherche et filtres">
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 text-slate-500" size={20} />
             <input
               type="text"
-              placeholder="Rechercher par titre, propriétaire..."
+              placeholder="Rechercher par titre, propriétaire, ville..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                handleSearch(e.target.value, categoryFilter, statusFilter);
+                setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
+              className="w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
             />
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <div className="flex gap-2 flex-wrap">
-              <p className="text-sm text-slate-400 flex items-center">Catégorie:</p>
+            <p className="flex items-center text-sm text-slate-400">Catégorie:</p>
+            {['all', 'car', 'rental', 'parts'].map((category) => (
               <button
+                key={category}
                 onClick={() => {
-                  setCategoryFilter('all');
-                  handleSearch(searchTerm, 'all', statusFilter);
+                  setCategoryFilter(category);
+                  setCurrentPage(1);
                 }}
-                className={`px-3 py-1 rounded text-sm transition-colors ${
-                  categoryFilter === 'all'
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white'
+                className={`flex items-center gap-1 rounded px-3 py-1 text-sm transition-colors ${
+                  categoryFilter === category ? 'bg-amber-500 text-white' : 'border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white'
                 }`}
               >
-                Tous
+                {category !== 'all' && categoryIcons[category as keyof typeof categoryIcons]}
+                {category === 'all' ? 'Tous' : categoryLabels[category as keyof typeof categoryLabels]}
               </button>
-              {Object.entries(categoryLabels).map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => {
-                    setCategoryFilter(key);
-                    handleSearch(searchTerm, key, statusFilter);
-                  }}
-                  className={`px-3 py-1 rounded text-sm transition-colors flex items-center gap-1 ${
-                    categoryFilter === key
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {categoryIcons[key as keyof typeof categoryIcons]}
-                  {label}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <p className="text-sm text-slate-400 flex items-center">Statut:</p>
-            {['all', 'active', 'pending', 'flagged', 'archived'].map((status) => (
+            <p className="flex items-center text-sm text-slate-400">Statut:</p>
+            {['all', 'active', 'pending', 'flagged', 'archived', 'sold'].map((status) => (
               <button
                 key={status}
                 onClick={() => {
                   setStatusFilter(status);
-                  handleSearch(searchTerm, categoryFilter, status);
+                  setCurrentPage(1);
                 }}
-                className={`px-3 py-1 rounded text-sm transition-colors ${
-                  statusFilter === status
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white'
+                className={`rounded px-3 py-1 text-sm transition-colors ${
+                  statusFilter === status ? 'bg-amber-500 text-white' : 'border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white'
                 }`}
               >
-                {status === 'all' ? 'Tous' : status === 'active' ? 'Actif' : status === 'pending' ? 'Attente' : status === 'flagged' ? 'Signalé' : 'Archivé'}
+                {status === 'all' ? 'Tous' : status}
               </button>
             ))}
           </div>
         </div>
       </ChartContainer>
 
-      {/* Listings Table */}
       <ChartContainer title={`Listings (${filteredListings.length})`}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-700">
-                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-400">Titre</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-400">Propriétaire</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-400">Catégorie</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-400">Prix</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-400">Vues</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-400">Statut</th>
-                <th className="text-right px-4 py-3 text-sm font-semibold text-slate-400">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-400">Titre</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-400">Propriétaire</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-400">Catégorie</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-400">Prix</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-400">Statut</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-slate-400">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedListings.map((listing) => (
-                <tr key={listing.id} className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-white max-w-xs truncate">{listing.title}</td>
-                  <td className="px-4 py-3 text-slate-400">{listing.owner}</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1 text-sm text-slate-400">
-                      {categoryIcons[listing.category as keyof typeof categoryIcons]}
-                      {categoryLabels[listing.category as keyof typeof categoryLabels]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-white">${listing.price}</td>
-                  <td className="px-4 py-3 text-slate-400">
-                    <span className="text-sm">{listing.views} vues</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        statusBadges[listing.status as keyof typeof statusBadges] || 'bg-slate-500/20 text-slate-400'
-                      }`}
-                    >
-                      {listing.status === 'active' ? 'Actif' : listing.status === 'pending' ? 'Attente' : listing.status === 'flagged' ? 'Signalé' : 'Archivé'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-slate-700/50 rounded transition-colors" title="Voir">
-                        <Eye size={16} className="text-blue-400" />
-                      </button>
-                      <button className="p-2 hover:bg-slate-700/50 rounded transition-colors" title="Supprimer">
-                        <Trash2 size={16} className="text-red-400" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {paginatedListings.map((listing) => {
+                const status = statusOf(listing);
+                const key = `${listing.listingType}:${listing.id}`;
+                return (
+                  <tr key={key} className="border-b border-slate-700/50 transition-colors hover:bg-slate-800/30">
+                    <td className="max-w-xs truncate px-4 py-3 font-medium text-white">{titleOf(listing)}</td>
+                    <td className="px-4 py-3 text-slate-400">{listing.userId || '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 text-sm text-slate-400">
+                        {categoryIcons[listing.listingType]}
+                        {categoryLabels[listing.listingType]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-white">${priceOf(listing).toLocaleString()}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-block rounded px-2 py-1 text-xs font-medium ${statusBadges[status] || 'bg-slate-500/20 text-slate-400'}`}>
+                        {status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link href={listing.href} className="rounded p-2 transition-colors hover:bg-slate-700/50" title="Voir">
+                          <Eye size={16} className="text-blue-400" />
+                        </Link>
+                        <button
+                          disabled={updatingId === key}
+                          onClick={() => updateListingStatus(listing, status === 'archived' ? 'active' : 'archived')}
+                          className="rounded p-2 transition-colors hover:bg-slate-700/50 disabled:opacity-60"
+                          title={status === 'archived' ? 'Réactiver' : 'Archiver'}
+                        >
+                          <Trash2 size={16} className={status === 'archived' ? 'text-green-400' : 'text-red-400'} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
       </ChartContainer>
     </div>
   );

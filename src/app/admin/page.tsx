@@ -1,133 +1,99 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import { collection } from 'firebase/firestore';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Activity, AlertCircle, BriefcaseBusiness, Car, Clock, FileText, ShoppingCart, Users } from 'lucide-react';
 import { StatCard, ChartContainer, ListItem } from './components/stat-card';
-import {
-  BarChart3,
-  TrendingUp,
-  Users,
-  ShoppingCart,
-  AlertCircle,
-  CreditCard,
-  Activity,
-  ArrowUpRight,
-  Clock,
-} from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 
-// Mock Data
-const revenueData = [
-  { date: '01 Jan', revenue: 2400, commission: 1200 },
-  { date: '02 Jan', revenue: 3200, commission: 1600 },
-  { date: '03 Jan', revenue: 2800, commission: 1400 },
-  { date: '04 Jan', revenue: 3900, commission: 1950 },
-  { date: '05 Jan', revenue: 4200, commission: 2100 },
-  { date: '06 Jan', revenue: 3800, commission: 1900 },
-  { date: '07 Jan', revenue: 4500, commission: 2250 },
-];
+type AdminDoc = {
+  createdAt?: any;
+  status?: string;
+  title?: string;
+  companyName?: string;
+  businessLabel?: string;
+  description?: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  email?: string;
+  name?: string;
+};
 
-const usersData = [
-  { date: '01 Jan', activeUsers: 1200, newUsers: 120 },
-  { date: '02 Jan', activeUsers: 1400, newUsers: 150 },
-  { date: '03 Jan', activeUsers: 1300, newUsers: 130 },
-  { date: '04 Jan', activeUsers: 1800, newUsers: 200 },
-  { date: '05 Jan', activeUsers: 2100, newUsers: 250 },
-  { date: '06 Jan', activeUsers: 1900, newUsers: 180 },
-  { date: '07 Jan', activeUsers: 2300, newUsers: 280 },
-];
+const pieColors = ['#0b4f8a', '#00a7f5', '#10b981', '#f59e0b'];
 
-const listingTypeData = [
-  { name: 'Vente', value: 45, fill: '#f59e0b' },
-  { name: 'Location', value: 30, fill: '#3b82f6' },
-  { name: 'Pièces', value: 15, fill: '#10b981' },
-  { name: 'Services', value: 10, fill: '#8b5cf6' },
-];
+function toDate(value: any): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value.toDate === 'function') return value.toDate();
+  if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+  return null;
+}
 
-const recentReports = [
-  {
-    id: '1',
-    title: 'Arnaque détectée',
-    description: 'User #123 - Activité suspecte',
-    badge: { label: 'Critique', color: 'red' as const },
-  },
-  {
-    id: '2',
-    title: 'Contenu inapproprié',
-    description: 'Listing #456 - Images non autorisées',
-    badge: { label: 'Élevé', color: 'amber' as const },
-  },
-  {
-    id: '3',
-    title: 'Faux profil',
-    description: 'User #789 - Profil en double',
-    badge: { label: 'Moyen', color: 'blue' as const },
-  },
-];
-
-const pendingApprovals = [
-  {
-    id: '1',
-    title: 'Toyota Camry 2023',
-    description: 'Listing premium - Besoin de vérification',
-    badge: { label: 'Attente', color: 'amber' as const },
-  },
-  {
-    id: '2',
-    title: 'BMW X5',
-    description: 'Documents à vérifier',
-    badge: { label: 'Attente', color: 'blue' as const },
-  },
-];
-
-const onlineUsers = [
-  {
-    id: '1',
-    title: 'Ahmed Mohammed',
-    description: 'Regardant les véhicules',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed',
-    badge: { label: 'Actif', color: 'green' as const },
-  },
-  {
-    id: '2',
-    title: 'Fatima Hassan',
-    description: 'Parcourant les listings',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima',
-    badge: { label: 'Actif', color: 'green' as const },
-  },
-  {
-    id: '3',
-    title: 'Mohamed Ali',
-    description: 'En attente',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mohamed',
-    badge: { label: 'Inactif', color: 'amber' as const },
-  },
-];
+function isLastDays(value: any, days: number) {
+  const date = toDate(value);
+  if (!date) return false;
+  return date.getTime() >= Date.now() - days * 24 * 60 * 60 * 1000;
+}
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 5234,
-    activeUsers: 1892,
-    onlineNow: 342,
-    totalListings: 8934,
-    pendingApprovals: 23,
-    totalReports: 156,
-    openReports: 12,
-    totalRevenue: 45230,
-  });
+  const firestore = useFirestore();
+  const usersRef = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
+  const vehiclesRef = useMemoFirebase(() => firestore ? collection(firestore, 'vehicles') : null, [firestore]);
+  const rentalsRef = useMemoFirebase(() => firestore ? collection(firestore, 'rentals') : null, [firestore]);
+  const partsRef = useMemoFirebase(() => firestore ? collection(firestore, 'parts') : null, [firestore]);
+  const businessProfilesRef = useMemoFirebase(() => firestore ? collection(firestore, 'businessProfiles') : null, [firestore]);
+  const reportsRef = useMemoFirebase(() => firestore ? collection(firestore, 'reports') : null, [firestore]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: users, isLoading: usersLoading } = useCollection<AdminDoc>(usersRef);
+  const { data: vehicles, isLoading: vehiclesLoading } = useCollection<AdminDoc>(vehiclesRef);
+  const { data: rentals, isLoading: rentalsLoading } = useCollection<AdminDoc>(rentalsRef);
+  const { data: parts, isLoading: partsLoading } = useCollection<AdminDoc>(partsRef);
+  const { data: businessProfiles, isLoading: businessLoading } = useCollection<AdminDoc>(businessProfilesRef);
+  const { data: reports, isLoading: reportsLoading } = useCollection<AdminDoc>(reportsRef);
 
-  useEffect(() => {
-    // Simulation du chargement des données
-    setTimeout(() => setIsLoading(false), 1000);
-  }, []);
+  const isLoading = usersLoading || vehiclesLoading || rentalsLoading || partsLoading || businessLoading || reportsLoading;
+
+  const listingTypeData = useMemo(() => [
+    { name: 'Vente', value: vehicles?.length || 0 },
+    { name: 'Location', value: rentals?.length || 0 },
+    { name: 'Pièces', value: parts?.length || 0 },
+    { name: 'Partenaires', value: businessProfiles?.length || 0 },
+  ], [businessProfiles?.length, parts?.length, rentals?.length, vehicles?.length]);
+
+  const usersChartData = useMemo(() => {
+    return Array.from({ length: 7 }).map((_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - index));
+      const label = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+      const newUsers = (users || []).filter((user) => {
+        const createdAt = toDate(user.createdAt);
+        return createdAt?.toDateString() === date.toDateString();
+      }).length;
+      return { date: label, newUsers };
+    });
+  }, [users]);
+
+  const pendingPartners = (businessProfiles || []).filter((profile) => profile.status === 'pending');
+  const openReports = (reports || []).filter((report) => !report.status || ['open', 'pending', 'investigating'].includes(report.status));
+  const totalListings = (vehicles?.length || 0) + (rentals?.length || 0) + (parts?.length || 0);
+  const newUsers7d = (users || []).filter((user) => isLastDays(user.createdAt, 7)).length;
+  const newListings7d = [...(vehicles || []), ...(rentals || []), ...(parts || [])].filter((listing) => isLastDays(listing.createdAt, 7)).length;
+
+  const recentActivity = [
+    { id: 'users', title: `${newUsers7d} nouveaux utilisateurs`, description: 'Sur les 7 derniers jours', badge: { label: 'Utilisateurs', color: 'blue' as const } },
+    { id: 'listings', title: `${newListings7d} nouvelles annonces`, description: 'Vente, location et pièces', badge: { label: 'Annonces', color: 'green' as const } },
+    { id: 'partners', title: `${pendingPartners.length} partenaires en attente`, description: 'Demandes business à valider', badge: { label: 'Validation', color: 'amber' as const } },
+  ];
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex h-96 items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4" />
-          <p className="text-slate-400">Chargement des données...</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500" />
+          <p className="text-slate-400">Chargement des données Firebase...</p>
         </div>
       </div>
     );
@@ -135,195 +101,72 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Tableau de Bord Principal</h1>
-        <p className="text-slate-400">Vue d'ensemble en temps réel de votre plateforme</p>
+        <h1 className="mb-2 text-3xl font-bold text-white">Tableau de bord admin</h1>
+        <p className="text-slate-400">Vue temps réel des données AUTONEX depuis Firebase</p>
       </div>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Utilisateurs Total"
-          value={stats.totalUsers}
-          change={12.5}
-          icon={<Users size={24} />}
-          color="blue"
-        />
-        <StatCard
-          label="Utilisateurs Actifs"
-          value={stats.activeUsers}
-          change={8.2}
-          icon={<Activity size={24} />}
-          color="green"
-        />
-        <StatCard
-          label="En Ligne Maintenant"
-          value={stats.onlineNow}
-          change={-3.1}
-          icon={<Clock size={24} />}
-          color="purple"
-        />
-        <StatCard
-          label="Revenus Aujourd'hui"
-          value={`${stats.totalRevenue}$`}
-          change={15.3}
-          icon={<CreditCard size={24} />}
-          color="amber"
-        />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Utilisateurs" value={users?.length || 0} icon={<Users size={24} />} color="blue" />
+        <StatCard label="Listings" value={totalListings} icon={<ShoppingCart size={24} />} color="green" />
+        <StatCard label="Partenaires attente" value={pendingPartners.length} icon={<BriefcaseBusiness size={24} />} color="amber" />
+        <StatCard label="Signalements ouverts" value={openReports.length} icon={<AlertCircle size={24} />} color="red" />
       </div>
 
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          label="Listings Actifs"
-          value={stats.totalListings}
-          change={5.2}
-          icon={<ShoppingCart size={24} />}
-          color="green"
-        />
-        <StatCard
-          label="Approbations en Attente"
-          value={stats.pendingApprovals}
-          change={-2.3}
-          icon={<TrendingUp size={24} />}
-          color="amber"
-        />
-        <StatCard
-          label="Signalements Ouverts"
-          value={stats.openReports}
-          change={8.9}
-          icon={<AlertCircle size={24} />}
-          color="red"
-        />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard label="Véhicules vente" value={vehicles?.length || 0} icon={<Car size={24} />} color="blue" />
+        <StatCard label="Véhicules location" value={rentals?.length || 0} icon={<Clock size={24} />} color="purple" />
+        <StatCard label="Pièces" value={parts?.length || 0} icon={<FileText size={24} />} color="green" />
       </div>
 
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <ChartContainer title="Revenus & Commissions" description="Derniers 7 jours">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ChartContainer title="Nouveaux utilisateurs" description="7 derniers jours">
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={usersChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis dataKey="date" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #475569',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: '#fff' }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="revenue" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} />
-              <Line type="monotone" dataKey="commission" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-
-        {/* Users Chart */}
-        <ChartContainer title="Croissance des Utilisateurs" description="Derniers 7 jours">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={usersData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #475569',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: '#fff' }}
-              />
-              <Legend />
-              <Bar dataKey="activeUsers" fill="#10b981" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="newUsers" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+              <YAxis stroke="#94a3b8" allowDecimals={false} />
+              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }} labelStyle={{ color: '#fff' }} />
+              <Bar dataKey="newUsers" fill="#00a7f5" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
-      </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Listing Types */}
-        <ChartContainer title="Distribution des Listings">
-          <ResponsiveContainer width="100%" height={300}>
+        <ChartContainer title="Distribution des contenus">
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
-              <Pie
-                data={listingTypeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name} ${value}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
+              <Pie data={listingTypeData} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
                 {listingTypeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                  <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
                 ))}
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </ChartContainer>
-
-        {/* Utilisateurs En Ligne */}
-        <ChartContainer title="Utilisateurs En Ligne" description={`${stats.onlineNow} actifs maintenant`}>
-          <div className="space-y-3">
-            {onlineUsers.map((user) => (
-              <ListItem key={user.id} {...user} />
-            ))}
-          </div>
-        </ChartContainer>
-
-        {/* Recent Activity */}
-        <ChartContainer title="Activité Récente">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <div className="flex-1">
-                <p className="text-sm text-white">50 nouveaux listings</p>
-                <p className="text-xs text-slate-500">Il y a 5 minutes</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
-              <div className="flex-1">
-                <p className="text-sm text-white">3 signalements reçus</p>
-                <p className="text-xs text-slate-500">Il y a 12 minutes</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-              <div className="flex-1">
-                <p className="text-sm text-white">Payout de 5000$</p>
-                <p className="text-xs text-slate-500">Il y a 28 minutes</p>
-              </div>
-            </div>
-          </div>
-        </ChartContainer>
       </div>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Reports */}
-        <ChartContainer title="Signalements Récents" description={`${stats.openReports} ouverts`}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ChartContainer title="Activité récente">
           <div className="space-y-3">
-            {recentReports.map((report) => (
-              <ListItem key={report.id} {...report} />
-            ))}
+            {recentActivity.map((activity) => <ListItem key={activity.id} {...activity} />)}
           </div>
         </ChartContainer>
 
-        {/* Pending Approvals */}
-        <ChartContainer title="Approbations en Attente" description={`${stats.pendingApprovals} à approuver`}>
+        <ChartContainer title="Partenaires en attente" description={`${pendingPartners.length} dossier(s) à valider`}>
           <div className="space-y-3">
-            {pendingApprovals.map((approval) => (
-              <ListItem key={approval.id} {...approval} />
-            ))}
+            {pendingPartners.length === 0 ? (
+              <div className="rounded-lg border border-slate-700/30 bg-slate-800/30 p-4 text-slate-400">Aucune demande partenaire en attente.</div>
+            ) : (
+              pendingPartners.slice(0, 5).map((profile) => (
+                <ListItem
+                  key={profile.id}
+                  title={profile.companyName || 'Entreprise'}
+                  description={profile.businessLabel || profile.description || 'Profil partenaire'}
+                  badge={{ label: 'Attente', color: 'amber' }}
+                />
+              ))
+            )}
           </div>
         </ChartContainer>
       </div>

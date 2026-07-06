@@ -7,18 +7,20 @@ import AdminHeader from './components/admin-header';
 import { useAdmin } from '@/contexts/admin-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useUser } from '@/firebase';
 
 function AdminLayoutContent({ children }: { children: ReactNode }) {
   const { isAdmin, isLoading } = useAdmin();
+  const { isUserLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
+    if (!isUserLoading && !isLoading && !isAdmin) {
       router.replace('/login');
     }
-  }, [isAdmin, isLoading, router]);
+  }, [isAdmin, isLoading, isUserLoading, router]);
 
-  if (isLoading) {
+  if (isUserLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-950">
         <div className="text-white text-center">

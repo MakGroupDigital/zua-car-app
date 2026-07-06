@@ -14,6 +14,9 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
 import { useSellerNames } from '@/hooks/use-seller-names';
 import { cn } from '@/lib/utils';
+import { getListingPrimaryImage } from '@/lib/listing-images';
+import { RDC_CITIES, normalizeCity } from '@/lib/rdc-cities';
+import { VEHICLE_TYPES, getVehicleTypeFromListing, normalizeVehicleType } from '@/lib/vehicle-types';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +45,10 @@ interface Vehicle {
   userId?: string;
   location?: string;
   condition?: string;
+  vehicleType?: string;
+  type?: string;
+  category?: string;
+  bodyType?: string;
 }
 
 export default function VehiclesPage() {
@@ -53,6 +60,7 @@ export default function VehiclesPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
     const [yearRange, setYearRange] = useState<[number, number]>([1990, new Date().getFullYear() + 1]);
     const [locationFilter, setLocationFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
     
     const firestore = useFirestore();
     const vehiclesQuery = useMemoFirebase(
@@ -111,7 +119,13 @@ export default function VehiclesPage() {
 
         if (locationFilter) {
             filteredVehicles = filteredVehicles.filter(vehicle =>
-                vehicle.location?.toLowerCase().includes(locationFilter.toLowerCase())
+                normalizeCity(vehicle.location).includes(normalizeCity(locationFilter))
+            );
+        }
+
+        if (typeFilter) {
+            filteredVehicles = filteredVehicles.filter(vehicle =>
+                normalizeVehicleType(getVehicleTypeFromListing(vehicle)).includes(normalizeVehicleType(typeFilter))
             );
         }
         
@@ -128,18 +142,20 @@ export default function VehiclesPage() {
         });
         
         return filteredVehicles;
-    }, [rawVehicles, searchTerm, selectedBrand, priceRange, yearRange, locationFilter]);
+    }, [rawVehicles, searchTerm, selectedBrand, priceRange, yearRange, locationFilter, typeFilter]);
 
     const hasActiveFilters = selectedBrand !== null || 
       priceRange[0] > 0 || priceRange[1] < 100000 || 
       yearRange[0] > 1990 || yearRange[1] < (new Date().getFullYear() + 1) ||
-      locationFilter !== '';
+      locationFilter !== '' ||
+      typeFilter !== '';
 
     const resetFilters = () => {
       setSelectedBrand(null);
       setPriceRange([0, 100000]);
       setYearRange([1990, new Date().getFullYear() + 1]);
       setLocationFilter('');
+      setTypeFilter('');
       toast({
         title: 'Filtres réinitialisés',
         description: 'Tous les filtres ont été supprimés',
@@ -165,18 +181,16 @@ export default function VehiclesPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-background p-4 flex items-center gap-4 shadow-sm sticky top-0 z-20">
-        <Link href="/home" passHref>
-            <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-        </Link>
-        <h1 className="text-xl font-bold">Véhicules à Vendre</h1>
-      </header>
-      
       <main className="p-4 space-y-4">
+        <section className="rounded-[2rem] border border-white/50 bg-card/75 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+          <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-2xl font-black text-transparent">
+            Acheter un véhicule
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Recherchez par prix, marque et localisation.</p>
+        </section>
+
         {/* Search and Filter Bar */}
-        <div className="sticky top-[73px] bg-muted z-10 py-2 -mx-4 px-4">
+        <div className="py-2">
             <div className="flex items-center gap-3">
               <div className="relative flex-grow">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -224,11 +238,30 @@ export default function VehiclesPage() {
                   <div className="space-y-6 py-4">
                     <div className="space-y-3">
                       <Label className="text-sm font-medium">Localisation</Label>
-                      <Input
-                        placeholder="Kinshasa, Lubumbashi..."
+                      <select
                         value={locationFilter}
                         onChange={(e) => setLocationFilter(e.target.value)}
-                      />
+                        className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                      >
+                        <option value="">Toutes les villes</option>
+                        {RDC_CITIES.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Type de véhicule</Label>
+                      <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                      >
+                        <option value="">Tous les types</option>
+                        {VEHICLE_TYPES.map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Price Range */}
@@ -342,6 +375,14 @@ export default function VehiclesPage() {
                     {yearRange[0]} - {yearRange[1]}
                   </span>
                 )}
+                {typeFilter && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/20 text-primary rounded-full text-xs font-medium">
+                    {typeFilter}
+                    <button onClick={() => setTypeFilter('')} className="hover:text-primary/70">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
               </div>
             )}
             
@@ -426,11 +467,7 @@ export default function VehiclesPage() {
               const rating = vehicleRating.average || 0;
               const sellerName = car.userId && sellerNames[car.userId] ? sellerNames[car.userId].name : 'Vendeur';
               
-              // Get vehicle image
-              let imageUrl = car.imageUrl;
-              if (!imageUrl && Array.isArray(car.imageUrls) && car.imageUrls.length > 0) {
-                imageUrl = car.imageUrls[0];
-              }
+              let imageUrl: string | null | undefined = getListingPrimaryImage(car, '');
               if (!imageUrl && car.imageId) {
                 const carImage = PlaceHolderImages.find(p => p.id === car.imageId);
                 imageUrl = carImage?.imageUrl;

@@ -36,7 +36,7 @@ export default function ClientLayout({
     <html lang="fr" suppressHydrationWarning>
       <head>
         <title>AUTONEX - Solutions Automobiles Tout-en-Un en RDC</title>
-        <meta name="description" content="AUTONEX propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo." />
+        <meta name="description" content="AUTONEX est le hub automobile en RDC pour louer, acheter, vendre et accéder à des offres d'assurance." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         
         {/* PWA Meta Tags */}
@@ -47,8 +47,8 @@ export default function ClientLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         
         {/* Icons */}
-        <link rel="icon" href="/Nzilalogo.png" />
-        <link rel="apple-touch-icon" href="/Nzilalogo.png" />
+        <link rel="icon" href="/AutonexLogo.png" />
+        <link rel="apple-touch-icon" href="/AutonexLogo.png" />
         <link rel="manifest" href="/manifest.json" />
         
         {/* Fonts */}

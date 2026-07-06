@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Bell, MessageSquare, Heart, ShoppingCart, Tag, CheckCircle2, Loader2, Trash2, Settings } from 'lucide-react';
+import { ArrowLeft, Bell, MessageSquare, Heart, Tag, CheckCircle2, Loader2, Trash2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/use-notifications';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,10 @@ interface Notification {
     messagePreview?: string;
     senderName?: string;
     senderPhoto?: string;
+    bookingId?: string;
+    renterId?: string;
   };
+  bookingStatus?: 'accepted' | 'rejected';
   read: boolean;
   createdAt: Timestamp;
   imageUrl?: string;
@@ -186,6 +189,55 @@ export default function NotificationsPage() {
     }
   };
 
+  const updateBookingStatus = async (notification: Notification, status: 'accepted' | 'rejected') => {
+    if (!firestore || !notification.data?.bookingId) return;
+
+    try {
+      await updateDoc(doc(firestore, 'rentalBookings', notification.data.bookingId), {
+        status,
+        ownerRespondedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      await updateDoc(doc(firestore, 'notifications', notification.id), {
+        read: true,
+        bookingStatus: status,
+        updatedAt: serverTimestamp(),
+      });
+
+      toast({
+        title: status === 'accepted' ? 'Demande acceptée' : 'Demande rejetée',
+        description: status === 'accepted'
+          ? 'Le client peut maintenant continuer avec vous.'
+          : 'Le client verra que sa demande n’a pas été retenue.',
+      });
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Impossible de mettre à jour cette demande de location',
+      });
+    }
+  };
+
+  const contactBookingClient = async (notification: Notification) => {
+    if (!notification.data?.renterId) {
+      toast({
+        variant: 'destructive',
+        title: 'Client introuvable',
+        description: 'Cette notification ne contient pas le client à contacter.',
+      });
+      return;
+    }
+
+    if (!notification.read) {
+      await markAsRead(notification.id);
+    }
+
+    router.push(`/messages?sellerId=${notification.data.renterId}${notification.data.rentalId ? `&rentalId=${notification.data.rentalId}` : ''}`);
+  };
+
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
       markAsRead(notification.id);
@@ -274,6 +326,7 @@ export default function NotificationsPage() {
           notifications.map((notification) => {
             const Icon = getNotificationIcon(notification.type);
             const link = getNotificationLink(notification);
+            const hasBookingActions = notification.type === 'rental_booked' && Boolean(notification.data?.bookingId);
 
             const cardContent = (
               <Card className={cn(
@@ -344,13 +397,69 @@ export default function NotificationsPage() {
                           </span>
                         </div>
                       )}
+
+                      {hasBookingActions && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {notification.bookingStatus ? (
+                            <span className={cn(
+                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+                              notification.bookingStatus === 'accepted'
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted text-muted-foreground"
+                            )}>
+                              {notification.bookingStatus === 'accepted' ? 'Demande acceptée' : 'Demande rejetée'}
+                            </span>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                className="h-9 rounded-full"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  updateBookingStatus(notification, 'accepted');
+                                }}
+                              >
+                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                Accepter
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-9 rounded-full"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  updateBookingStatus(notification, 'rejected');
+                                }}
+                              >
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Rejeter
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-9 rounded-full"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              contactBookingClient(notification);
+                            }}
+                          >
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Contacter
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             );
 
-            if (link) {
+            if (link && !hasBookingActions) {
               return (
                 <Link key={notification.id} href={link} onClick={() => handleNotificationClick(notification)}>
                   {cardContent}
@@ -369,4 +478,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-

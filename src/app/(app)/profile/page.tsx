@@ -10,13 +10,14 @@ import { signOut, updateProfile } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronRight, User, Settings, HelpCircle, LogOut, ArrowLeft, Shield, FileText, Loader2, Camera } from 'lucide-react';
+import { ChevronRight, User, Settings, HelpCircle, LogOut, ArrowLeft, Shield, FileText, Loader2, Camera, BriefcaseBusiness } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 
 const profileMenuItems = [
   { label: 'Modifier le profil', icon: User, href: '/profile/edit' },
+  { label: 'Devenir partenaire', icon: BriefcaseBusiness, href: '/partner/apply' },
   { label: 'Mes annonces', icon: FileText, href: '/dashboard/vente' },
   { label: 'Historique des locations', icon: FileText, href: '/profile/rentals' },
   { label: 'Réglages du compte', icon: Settings, href: '/settings' },

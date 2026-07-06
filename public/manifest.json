@@ -1,7 +1,7 @@
 {
-  "name": "Nzila - Solutions Automobiles",
-  "short_name": "Nzila",
-  "description": "Nzila propose des services automobiles de premier ordre, notamment la maintenance, la réparation et la vente de voitures en République Démocratique du Congo.",
+  "name": "AUTONEX",
+  "short_name": "AUTONEX",
+  "description": "Hub automobile en RDC pour louer, acheter, vendre et accéder à des offres d'assurance.",
   "start_url": "/home",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,51 +9,51 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "72x72",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "96x96",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "128x128",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "144x144",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "152x152",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "384x384",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Nzilalogo.png",
+      "src": "/AutonexLogo.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -61,19 +61,18 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Véhicules",
-      "short_name": "Véhicules",
-      "description": "Voir les véhicules disponibles",
-      "url": "/vehicles",
-      "icons": [{ "src": "/Nzilalogo.png", "sizes": "192x192" }]
+      "name": "Louer",
+      "short_name": "Louer",
+      "description": "Voir les véhicules à louer",
+      "url": "/vehicleRentalListings",
+      "icons": [{ "src": "/AutonexLogo.png", "sizes": "192x192" }]
     },
     {
-      "name": "Mes Ventes",
-      "short_name": "Ventes",
-      "description": "Gérer mes ventes",
-      "url": "/dashboard/vente",
-      "icons": [{ "src": "/Nzilalogo.png", "sizes": "192x192" }]
+      "name": "Acheter",
+      "short_name": "Acheter",
+      "description": "Voir les véhicules à vendre",
+      "url": "/vehicles",
+      "icons": [{ "src": "/AutonexLogo.png", "sizes": "192x192" }]
     }
   ]
 }
-

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Home, HeartPulse, MessageCircle, Plus, Tag, KeyRound, UserRound } from 'lucide-react';
+import { Car, Home, HeartPulse, MessageCircle, Plus, ShieldCheck, Tag, KeyRound, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -116,31 +116,61 @@ export function BottomNav() {
 
           <div className="grid grid-cols-2 gap-3 py-4">
             <Button
-              onClick={() => handleOptionClick('/dashboard/vente/nouveau')}
-              className="h-36 rounded-[1.5rem] bg-gradient-to-br from-primary to-accent p-4 text-primary-foreground shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
+              onClick={() => handleOptionClick('/vehicleRentalListings')}
+              className="h-32 rounded-[1.5rem] bg-gradient-to-br from-primary to-accent p-4 text-primary-foreground shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
             >
               <div className="flex h-full flex-col items-start justify-between text-left">
                 <div className="rounded-full bg-primary-foreground/20 p-3">
-                  <Tag className="h-7 w-7" />
+                  <KeyRound className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black">Vendre</h3>
-                  <p className="text-xs text-primary-foreground/85">Publier un véhicule</p>
+                  <h3 className="text-lg font-black">Louer</h3>
+                  <p className="text-xs text-primary-foreground/85">Trouver une location</p>
                 </div>
               </div>
             </Button>
 
             <Button
-              onClick={() => handleOptionClick('/vehicleRentalListings/nouveau')}
-              className="h-36 rounded-full bg-card p-4 text-primary shadow-xl shadow-primary/10 ring-1 ring-primary/15 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/5"
+              onClick={() => handleOptionClick('/vehicles')}
+              className="h-32 rounded-[1.5rem] bg-card p-4 text-primary shadow-xl shadow-primary/10 ring-1 ring-primary/15 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/5"
+            >
+              <div className="flex h-full flex-col items-start justify-between text-left">
+                <div className="rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-3">
+                  <Car className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black">Acheter</h3>
+                  <p className="text-xs text-muted-foreground">Voir les offres</p>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => handleOptionClick('/dashboard/vente/nouveau')}
+              className="h-32 rounded-[1.5rem] bg-card p-4 text-primary shadow-xl shadow-primary/10 ring-1 ring-primary/15 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/5"
+            >
+              <div className="flex h-full flex-col items-start justify-between text-left">
+                <div className="rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-3">
+                  <Tag className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black">Vendre</h3>
+                  <p className="text-xs text-muted-foreground">Publier un véhicule</p>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => handleOptionClick('/insuranceProviders')}
+              className="h-32 rounded-full bg-card p-4 text-primary shadow-xl shadow-primary/10 ring-1 ring-primary/15 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/5"
             >
               <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
                 <div className="rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-3">
-                  <KeyRound className="h-7 w-7" />
+                  <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black">Louer</h3>
-                  <p className="text-xs text-muted-foreground">Mettre en location</p>
+                  <h3 className="text-lg font-black">Assurance</h3>
+                  <p className="text-xs text-muted-foreground">Demander un devis</p>
                 </div>
               </div>
             </Button>

@@ -168,35 +168,15 @@ export default function InsuranceProvidersPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-20">
-      <header className="bg-background sticky top-0 z-10 border-b p-4 flex items-center gap-4 shadow-sm">
-        <Link href="/home" passHref>
-          <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
-            <ArrowLeft className="h-6 w-6 text-foreground" />
-          </Button>
-        </Link>
-        <h1 className="text-xl font-bold text-foreground">Assurance Auto</h1>
-      </header>
-
       <main className="p-4 max-w-3xl mx-auto space-y-6">
-        {/* Important Notice Banner */}
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 flex items-start gap-3">
-          <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
-          <div>
-            <h3 className="font-semibold text-amber-800 dark:text-amber-400 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Service en cours de développement
-            </h3>
-            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-              <strong>Note importante :</strong> Nous n'avons actuellement aucun partenariat avec les compagnies d'assurance listées ci-dessous. 
-              Ces offres sont présentées à titre indicatif. Nous travaillons activement pour vous proposer des partenariats officiels dans les jours à venir.
-            </p>
-            <p className="text-sm text-amber-600 dark:text-amber-400 mt-2 font-medium">
-              En soumettant le formulaire, vous manifestez votre intérêt et serez contacté dès qu'un partenariat sera établi.
-            </p>
-          </div>
-        </div>
+        <section className="rounded-[2rem] border border-white/50 bg-card/75 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+          <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-2xl font-black text-transparent">
+            Assurance
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Comparez les offres et demandez un devis selon votre véhicule et son usage.</p>
+        </section>
 
-        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
+        <div className="bg-primary/10 border border-primary/20 rounded-[1.5rem] p-4 flex items-start gap-3">
           <ShieldCheck className="h-6 w-6 text-primary mt-1 shrink-0" />
           <div>
             <h3 className="font-semibold text-primary">Pourquoi s'assurer ?</h3>
@@ -209,14 +189,6 @@ export default function InsuranceProvidersPage() {
         <div className="grid gap-6">
           {insuranceProviders.map((provider) => (
             <Card key={provider.id} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300 relative">
-              {/* Coming Soon Badge */}
-              <div className="absolute top-3 right-3 z-10">
-                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-600">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Bientôt disponible
-                </Badge>
-              </div>
-              
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div className="flex gap-4 items-center">
@@ -225,7 +197,7 @@ export default function InsuranceProvidersPage() {
                     </div>
                     <div>
                       <CardTitle className="text-lg font-bold text-foreground">{provider.name}</CardTitle>
-                      <div className="flex items-center gap-1 text-yellow-500 mt-1">
+                      <div className="flex items-center gap-1 text-accent mt-1">
                         <Star className="h-4 w-4 fill-current" />
                         <span className="text-sm font-medium text-muted-foreground">{provider.rating}</span>
                       </div>
@@ -254,7 +226,7 @@ export default function InsuranceProvidersPage() {
                       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm h-11"
                   onClick={() => openDialog(provider.name)}
                     >
-                  Manifester mon intérêt
+                  Demander un devis
                     </Button>
               </CardFooter>
             </Card>
@@ -274,14 +246,6 @@ export default function InsuranceProvidersPage() {
               Vous êtes intéressé par <strong className="text-primary">{selectedProvider}</strong>.
             </DialogDescription>
           </DialogHeader>
-          
-          {/* Warning Notice */}
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 mb-4">
-            <p className="text-xs text-amber-700 dark:text-amber-300">
-              <strong>⚠️ Rappel :</strong> Ce formulaire enregistre votre intérêt. Aucun engagement ni paiement n'est requis. 
-              Nous vous contacterons dès qu'un partenariat officiel sera établi avec cette compagnie.
-            </p>
-          </div>
           
           <form onSubmit={handleSubscribe} className="space-y-4">
             <div className="space-y-2">

@@ -9,6 +9,8 @@ export interface NotificationData {
     vehicleId?: string;
     partId?: string;
     rentalId?: string;
+    bookingId?: string;
+    renterId?: string;
     conversationId?: string;
     messagePreview?: string;
     senderName?: string;
@@ -45,6 +47,8 @@ export async function createNotification(
       if (notificationData.data.vehicleId) cleanData.data.vehicleId = notificationData.data.vehicleId;
       if (notificationData.data.partId) cleanData.data.partId = notificationData.data.partId;
       if (notificationData.data.rentalId) cleanData.data.rentalId = notificationData.data.rentalId;
+      if (notificationData.data.bookingId) cleanData.data.bookingId = notificationData.data.bookingId;
+      if (notificationData.data.renterId) cleanData.data.renterId = notificationData.data.renterId;
     }
     
     if (notificationData.imageUrl) {
@@ -68,14 +72,14 @@ export async function createNotification(
           // Note: This will only show if called from the recipient's browser
           await registration.showNotification(notificationData.title, {
             body: notificationData.body,
-            icon: '/Nzilalogo.png', // AUTONEX logo
-            badge: '/Nzilalogo.png',
+            icon: '/AutonexLogo.png',
+            badge: '/AutonexLogo.png',
             tag: notificationData.type,
             data: notificationData.data,
             requireInteraction: false,
             silent: false, // Play sound
             vibrate: [200, 100, 200], // Vibration pattern for mobile
-          });
+          } as NotificationOptions & { vibrate?: number[] });
         }
       } catch (swError) {
         console.error('Error sending notification via service worker:', swError);
@@ -84,8 +88,8 @@ export async function createNotification(
         if ('Notification' in window && Notification.permission === 'granted') {
           const notification = new Notification(notificationData.title, {
             body: notificationData.body,
-            icon: '/Nzilalogo.png',
-            badge: '/Nzilalogo.png',
+            icon: '/AutonexLogo.png',
+            badge: '/AutonexLogo.png',
             tag: notificationData.type,
             data: notificationData.data,
             requireInteraction: false,
@@ -171,14 +175,14 @@ export async function createMessageNotification(
         
         await registration.showNotification(`Nouveau message de ${senderName}`, {
           body: preview,
-          icon: '/Nzilalogo.png',
-          badge: '/Nzilalogo.png',
+          icon: '/AutonexLogo.png',
+          badge: '/AutonexLogo.png',
           tag: 'message',
           data: notificationData,
           requireInteraction: false,
           silent: false,
           vibrate: [200, 100, 200],
-        });
+        } as NotificationOptions & { vibrate?: number[] });
       }
     } catch (swError) {
       console.error('Error sending notification via service worker:', swError);
@@ -196,8 +200,8 @@ export async function createMessageNotification(
         
         const notification = new Notification(`Nouveau message de ${senderName}`, {
           body: preview,
-          icon: '/Nzilalogo.png',
-          badge: '/Nzilalogo.png',
+            icon: '/AutonexLogo.png',
+            badge: '/AutonexLogo.png',
           tag: 'message',
           data: notificationData,
           requireInteraction: false,
@@ -236,4 +240,3 @@ export async function createFavoriteNotification(
     },
   });
 }
-

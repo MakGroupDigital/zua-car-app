@@ -15,6 +15,8 @@ import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useSellerNames } from '@/hooks/use-seller-names';
 import { getListingImageUrls } from '@/lib/listing-images';
+import { RDC_CITIES, normalizeCity } from '@/lib/rdc-cities';
+import { VEHICLE_TYPES, getVehicleTypeFromListing, normalizeVehicleType } from '@/lib/vehicle-types';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import {
   Dialog,
@@ -102,13 +104,13 @@ export default function VehicleRentalPage() {
 
     if (cityFilter) {
       filtered = filtered.filter(rental =>
-        rental.location?.toLowerCase().includes(cityFilter.toLowerCase())
+        normalizeCity(rental.location).includes(normalizeCity(cityFilter))
       );
     }
 
     if (typeFilter) {
       filtered = filtered.filter(rental =>
-        rental.vehicleType?.toLowerCase() === typeFilter.toLowerCase()
+        normalizeVehicleType(getVehicleTypeFromListing(rental)).includes(normalizeVehicleType(typeFilter))
       );
     }
 
@@ -195,11 +197,16 @@ export default function VehicleRentalPage() {
                   {/* Price Range */}
                   <div className="space-y-3">
                     <Label>Ville</Label>
-                    <Input
-                      placeholder="Kinshasa, Lubumbashi..."
+                    <select
                       value={cityFilter}
                       onChange={(e) => setCityFilter(e.target.value)}
-                    />
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    >
+                      <option value="">Toutes les villes</option>
+                      {RDC_CITIES.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="space-y-3">
@@ -210,11 +217,9 @@ export default function VehicleRentalPage() {
                       className="w-full h-10 px-3 rounded-md border border-input bg-background"
                     >
                       <option value="">Tous</option>
-                      <option value="SUV">SUV</option>
-                      <option value="Berline">Berline</option>
-                      <option value="Luxe">Luxe</option>
-                      <option value="Pickup">Pickup</option>
-                      <option value="Minibus">Minibus</option>
+                      {VEHICLE_TYPES.map((type) => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
                     </select>
                   </div>
 

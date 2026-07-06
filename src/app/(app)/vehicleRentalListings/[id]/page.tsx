@@ -24,12 +24,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getListingImageUrls } from '@/lib/listing-images';
+import { createNotification } from '@/lib/notifications/create-notification';
 
 interface Rental {
   id: string;
@@ -72,6 +75,11 @@ export default function RentalDetailsPage() {
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [showReserveDialog, setShowReserveDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [rentalDate, setRentalDate] = useState('');
+  const [rentalTime, setRentalTime] = useState('');
+  const [durationType, setDurationType] = useState<'days' | 'hours'>('days');
+  const [durationQuantity, setDurationQuantity] = useState(1);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
   // Fetch rental from Firebase
   const rentalDoc = useMemoFirebase(() =>
@@ -233,7 +241,113 @@ export default function RentalDetailsPage() {
   };
 
   const handleReserve = () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Connexion requise',
+        description: 'Connectez-vous pour louer ce véhicule',
+      });
+      router.push('/login');
+      return;
+    }
+
+    if (rental?.userId === user.uid) {
+      toast({
+        variant: 'destructive',
+        title: 'Action impossible',
+        description: 'Vous ne pouvez pas louer votre propre véhicule',
+      });
+      return;
+    }
+
     setShowReserveDialog(true);
+  };
+
+  const unitPrice = durationType === 'hours'
+    ? (rental?.pricePerHour || Math.ceil((rental?.pricePerDay || 0) / 24))
+    : (rental?.pricePerDay || 0);
+  const safeDurationQuantity = Math.max(1, Number(durationQuantity) || 1);
+  const estimatedTotal = unitPrice * safeDurationQuantity;
+
+  const submitBookingRequest = async () => {
+    if (!user || !firestore || !rental) return;
+
+    if (!rentalDate || !rentalTime) {
+      toast({
+        variant: 'destructive',
+        title: 'Date et heure requises',
+        description: 'Choisissez la date et l’heure de début de location.',
+      });
+      return;
+    }
+
+    if (safeDurationQuantity < 1) {
+      toast({
+        variant: 'destructive',
+        title: 'Durée invalide',
+        description: 'La durée doit être au moins égale à 1.',
+      });
+      return;
+    }
+
+    setIsSubmittingBooking(true);
+    try {
+      const startDateTime = new Date(`${rentalDate}T${rentalTime}`);
+      const endDateTime = new Date(startDateTime);
+      if (durationType === 'hours') {
+        endDateTime.setHours(endDateTime.getHours() + safeDurationQuantity);
+      } else {
+        endDateTime.setDate(endDateTime.getDate() + safeDurationQuantity);
+      }
+
+      const bookingRef = await addDoc(collection(firestore, 'rentalBookings'), {
+        rentalId,
+        rentalTitle: displayTitle,
+        ownerId: rental.userId,
+        renterId: user.uid,
+        renterName: user.displayName || user.email || 'Client AUTONEX',
+        startDate: rentalDate,
+        startTime: rentalTime,
+        startDateTime: startDateTime.toISOString(),
+        endDateTime: endDateTime.toISOString(),
+        durationType,
+        durationQuantity: safeDurationQuantity,
+        unitPrice,
+        estimatedTotal,
+        currency: 'USD',
+        status: 'pending_owner_validation',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      await createNotification(firestore, {
+        userId: rental.userId,
+        type: 'rental_booked',
+        title: 'Nouvelle demande de location',
+        body: `${user.displayName || user.email || 'Un client'} veut louer ${displayTitle} le ${rentalDate} à ${rentalTime} pour ${safeDurationQuantity} ${durationType === 'hours' ? 'heure(s)' : 'jour(s)'}. Total estimé : $${estimatedTotal.toFixed(2)}.`,
+        data: {
+          rentalId,
+          bookingId: bookingRef.id,
+          renterId: user.uid,
+        },
+        imageUrl: rentalImages[0],
+      });
+
+      toast({
+        title: 'Demande envoyée',
+        description: 'Le propriétaire peut accepter, rejeter ou vous contacter par chat.',
+      });
+      setShowReserveDialog(false);
+    } catch (error: any) {
+      console.error('Error creating booking:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: error.message || 'Impossible d’envoyer la demande de location.',
+      });
+    } finally {
+      setIsSubmittingBooking(false);
+    }
   };
 
   const handleShare = async () => {
@@ -457,21 +571,20 @@ export default function RentalDetailsPage() {
         </div>
       </main>
 
-      {/* Fixed Bottom Bar */}
-      <footer className="fixed bottom-0 left-0 w-full bg-background border-t p-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-        <div className="flex gap-3">
+      <footer className="fixed inset-x-4 bottom-[104px] z-50 rounded-[1.5rem] border border-primary/10 bg-background/90 p-2 shadow-2xl shadow-primary/15 backdrop-blur-xl">
+        <div className="flex gap-2">
           <Button 
             variant="outline" 
             size="lg" 
-            className="flex-1"
+            className="flex-1 rounded-full"
             onClick={handleContactRenter}
           >
             <MessageSquare className="mr-2 h-5 w-5" />
             Contacter
           </Button>
-          <Button size="lg" className="flex-1" onClick={handleReserve}>
+          <Button size="lg" className="flex-[1.35] rounded-full" onClick={handleReserve}>
                 <Calendar className="mr-2 h-5 w-5" />
-                Réserver
+                Louer maintenant
             </Button>
         </div>
       </footer>
@@ -482,18 +595,60 @@ export default function RentalDetailsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Réserver ce véhicule
+              Louer ce véhicule
             </DialogTitle>
             <DialogDescription>
-              Pour réserver <strong>{displayTitle}</strong> à <strong>${rental.pricePerDay}/jour</strong>
+              Choisissez le début, la durée et confirmez votre demande. Le propriétaire pourra accepter, rejeter ou vous contacter.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              Pour finaliser votre réservation, veuillez contacter directement le loueur. 
-              Vous pourrez discuter des dates, modalités de paiement et de récupération du véhicule.
-            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="rentalDate">Date</Label>
+                <Input id="rentalDate" type="date" value={rentalDate} onChange={(e) => setRentalDate(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rentalTime">Heure</Label>
+                <Input id="rentalTime" type="time" value={rentalTime} onChange={(e) => setRentalTime(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="durationType">Type de durée</Label>
+                <select
+                  id="durationType"
+                  value={durationType}
+                  onChange={(e) => setDurationType(e.target.value as 'days' | 'hours')}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3"
+                >
+                  <option value="days">Jour(s)</option>
+                  <option value="hours">Heure(s)</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="durationQuantity">Nombre</Label>
+                <Input
+                  id="durationQuantity"
+                  type="number"
+                  min={1}
+                  value={durationQuantity}
+                  onChange={(e) => setDurationQuantity(Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Prix unitaire</span>
+                <span className="font-bold">${unitPrice.toFixed(2)} / {durationType === 'hours' ? 'heure' : 'jour'}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-semibold">Total estimé</span>
+                <span className="text-2xl font-black text-primary">${estimatedTotal.toFixed(2)}</span>
+              </div>
+            </div>
             
             {renter && (
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -515,12 +670,9 @@ export default function RentalDetailsPage() {
             <Button variant="outline" onClick={() => setShowReserveDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={() => {
-              setShowReserveDialog(false);
-              handleContactRenter();
-            }}>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Contacter le loueur
+            <Button onClick={submitBookingRequest} disabled={isSubmittingBooking}>
+              {isSubmittingBooking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calendar className="mr-2 h-4 w-4" />}
+              Confirmer la demande
             </Button>
           </DialogFooter>
         </DialogContent>

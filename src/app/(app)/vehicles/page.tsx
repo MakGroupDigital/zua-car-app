@@ -15,6 +15,8 @@ import { useVehicleRatings } from '@/hooks/use-vehicle-ratings';
 import { useSellerNames } from '@/hooks/use-seller-names';
 import { cn } from '@/lib/utils';
 import { getListingPrimaryImage } from '@/lib/listing-images';
+import { RDC_CITIES, normalizeCity } from '@/lib/rdc-cities';
+import { VEHICLE_TYPES, getVehicleTypeFromListing, normalizeVehicleType } from '@/lib/vehicle-types';
 import {
   Dialog,
   DialogContent,
@@ -43,6 +45,10 @@ interface Vehicle {
   userId?: string;
   location?: string;
   condition?: string;
+  vehicleType?: string;
+  type?: string;
+  category?: string;
+  bodyType?: string;
 }
 
 export default function VehiclesPage() {
@@ -54,6 +60,7 @@ export default function VehiclesPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
     const [yearRange, setYearRange] = useState<[number, number]>([1990, new Date().getFullYear() + 1]);
     const [locationFilter, setLocationFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
     
     const firestore = useFirestore();
     const vehiclesQuery = useMemoFirebase(
@@ -112,7 +119,13 @@ export default function VehiclesPage() {
 
         if (locationFilter) {
             filteredVehicles = filteredVehicles.filter(vehicle =>
-                vehicle.location?.toLowerCase().includes(locationFilter.toLowerCase())
+                normalizeCity(vehicle.location).includes(normalizeCity(locationFilter))
+            );
+        }
+
+        if (typeFilter) {
+            filteredVehicles = filteredVehicles.filter(vehicle =>
+                normalizeVehicleType(getVehicleTypeFromListing(vehicle)).includes(normalizeVehicleType(typeFilter))
             );
         }
         
@@ -129,18 +142,20 @@ export default function VehiclesPage() {
         });
         
         return filteredVehicles;
-    }, [rawVehicles, searchTerm, selectedBrand, priceRange, yearRange, locationFilter]);
+    }, [rawVehicles, searchTerm, selectedBrand, priceRange, yearRange, locationFilter, typeFilter]);
 
     const hasActiveFilters = selectedBrand !== null || 
       priceRange[0] > 0 || priceRange[1] < 100000 || 
       yearRange[0] > 1990 || yearRange[1] < (new Date().getFullYear() + 1) ||
-      locationFilter !== '';
+      locationFilter !== '' ||
+      typeFilter !== '';
 
     const resetFilters = () => {
       setSelectedBrand(null);
       setPriceRange([0, 100000]);
       setYearRange([1990, new Date().getFullYear() + 1]);
       setLocationFilter('');
+      setTypeFilter('');
       toast({
         title: 'Filtres réinitialisés',
         description: 'Tous les filtres ont été supprimés',
@@ -223,11 +238,30 @@ export default function VehiclesPage() {
                   <div className="space-y-6 py-4">
                     <div className="space-y-3">
                       <Label className="text-sm font-medium">Localisation</Label>
-                      <Input
-                        placeholder="Kinshasa, Lubumbashi..."
+                      <select
                         value={locationFilter}
                         onChange={(e) => setLocationFilter(e.target.value)}
-                      />
+                        className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                      >
+                        <option value="">Toutes les villes</option>
+                        {RDC_CITIES.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Type de véhicule</Label>
+                      <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                      >
+                        <option value="">Tous les types</option>
+                        {VEHICLE_TYPES.map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Price Range */}
@@ -339,6 +373,14 @@ export default function VehiclesPage() {
                 {(yearRange[0] > 1990 || yearRange[1] < (new Date().getFullYear() + 1)) && (
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/20 text-primary rounded-full text-xs font-medium">
                     {yearRange[0]} - {yearRange[1]}
+                  </span>
+                )}
+                {typeFilter && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/20 text-primary rounded-full text-xs font-medium">
+                    {typeFilter}
+                    <button onClick={() => setTypeFilter('')} className="hover:text-primary/70">
+                      <X className="h-3 w-3" />
+                    </button>
                   </span>
                 )}
               </div>
